@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+  client_db:
+    container_name: client-pg-db
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfile/Dockerfile.postgres
+    ports:
+      - "5432:5432"
+    env_file:
+      - docker.env
+    volumes:
+      - client-pg-data:/var/lib/postgresql/data
+    networks:
+      - client-network
+  client_service:
+    container_name: client-service
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfile/Dockerfile.go.prod
+    volumes:
+      - ./src:/app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - client_db
+    networks:
+      - client-network
+
+networks:
+  client-network:
+
+volumes:
+  client-pg-data:

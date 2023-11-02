@@ -1,0 +1,37 @@
+#Pulling Golang Image
+FROM golang:1.20-alpine as BuildStage
+
+#Setting workdir in /app
+WORKDIR /app
+
+#Copying go mod and sum files
+COPY ./src/go.mod ./src/go.sum ./
+
+#Installing modules
+RUN go mod download
+
+#Copying source code and env
+COPY ./src .
+
+#Compiling app
+RUN CGO_ENABLED=0 GOOS=linux go build -o /client-app ./cmd/main.go
+
+
+# Deploy Stage
+FROM alpine:latest
+
+WORKDIR /
+
+COPY --from=BuildStage /client-app /client-app
+
+COPY /src/.env .
+
+#Setting up the port
+EXPOSE 8080
+
+RUN addgroup -g 1000 nonroot && adduser -u 1000 -G nonroot -s /bin/sh -D nonroot
+
+USER nonroot
+
+#Running the app
+CMD ["/client-app"]
