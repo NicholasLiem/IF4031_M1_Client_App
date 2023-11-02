@@ -22,10 +22,12 @@ jobs:
 
       - name: Debug Information
         run: |
+          cd src  # Change the working directory to the 'src' directory
           echo "Current directory: $(pwd)"
           echo "Contents of go.mod:"
           cat go.mod
         continue-on-error: true
+      
 
       - name: Install Go dependencies
         run: go mod download
