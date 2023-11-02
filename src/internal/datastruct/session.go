@@ -1,7 +1,8 @@
 package datastruct
 
 type SessionUserClient struct {
-	UserID        string
-	Role          Role
-	Authenticated bool
+	UserID   string `json:"user_id"`
+	Email    string `json:"email"`
+	Role     string `json:"role"`
+	LoggedIn bool   `json:"logged_in"`
 }

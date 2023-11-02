@@ -1,31 +1,36 @@
 package middleware
 
 import (
+	"context"
+	"encoding/json"
+	response "github.com/NicholasLiem/IF4031_M1_Client_App/utils/http"
+	"github.com/NicholasLiem/IF4031_M1_Client_App/utils/jwt"
 	"net/http"
 )
 
 func Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		//sessionId, err := utils.ParseCookie(r)
-		//if err != nil {
-		//	response.ErrorResponse(rw, http.StatusUnauthorized, messages.InvalidRequestData)
-		//	return
-		//}
-		//
-		////sessionData, err := redisClient.Get(context.Background(), *sessionId).Bytes()
-		//if err != nil {
-		//	response.ErrorResponse(rw, http.StatusInternalServerError, messages.SessionExpired)
-		//	return
-		//}
-		//
-		//var sessionUserData datastruct.SessionUserClient
-		//if err = json.Unmarshal(sessionData, &sessionUserData); err != nil {
-		//	response.ErrorResponse(rw, http.StatusInternalServerError, messages.FailToUnMarshalData)
-		//	return
-		//}
-		//
-		//ctx := context.WithValue(r.Context(), "sessionData", sessionData)
-		//r = r.WithContext(ctx)
-		next.ServeHTTP(rw, r)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := r.Cookie("sessionData")
+		if err != nil {
+			response.ErrorResponse(w, http.StatusBadRequest, "Cookie 'sessionData' is missing")
+			return
+		}
+
+		tokenStr := cookie.Value
+		claims, err := jwt.VerifyJWT(tokenStr)
+
+		if err != nil {
+			response.ErrorResponse(w, http.StatusUnauthorized, "Fail to verify JWT token: "+err.Error())
+			return
+		}
+
+		claimsJSON, err := json.Marshal(claims)
+		if err != nil {
+			response.ErrorResponse(w, http.StatusInternalServerError, "Failed to marshal claims to JSON")
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "jwtClaims", claimsJSON)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

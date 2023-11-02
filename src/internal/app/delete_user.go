@@ -35,12 +35,12 @@ func (m *MicroserviceServer) DeleteUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userData, err := m.userService.DeleteUser(userID, issuerId)
+	_, err = m.userService.DeleteUser(userID, issuerId)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToDeleteUser)
+		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	response.SuccessResponse(w, http.StatusOK, messages.SuccessfulUserDeletion, userData)
+	response.SuccessResponse(w, http.StatusOK, messages.SuccessfulUserDeletion, nil)
 	return
 }

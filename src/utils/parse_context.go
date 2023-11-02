@@ -8,7 +8,7 @@ import (
 )
 
 func ParseSessionUserFromContext(ctx context.Context) (*datastruct.SessionUserClient, error) {
-	sessionData, ok := ctx.Value("sessionData").([]byte)
+	sessionData, ok := ctx.Value("jwtClaims").([]byte)
 	if !ok {
 		return nil, errors.New("session data not found in context")
 	}
@@ -17,6 +17,5 @@ func ParseSessionUserFromContext(ctx context.Context) (*datastruct.SessionUserCl
 	if err := json.Unmarshal(sessionData, &sessionUser); err != nil {
 		return nil, err
 	}
-
 	return &sessionUser, nil
 }

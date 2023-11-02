@@ -7,11 +7,13 @@ import (
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/dto"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/repository"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/utils"
+	"github.com/NicholasLiem/IF4031_M1_Client_App/utils/jwt"
 	"golang.org/x/crypto/bcrypt"
+	"strconv"
 )
 
 type AuthService interface {
-	SignIn(loginDTO dto.LoginDTO) (*datastruct.UserModel, error)
+	SignIn(loginDTO dto.LoginDTO) (*datastruct.UserModel, *jwt.JWTToken, error)
 	SignUp(model datastruct.UserModel) (*datastruct.UserModel, error)
 	//LogOut(userID uint) error
 }
@@ -24,22 +26,27 @@ func NewAuthService(dao repository.DAO) AuthService {
 	return &authService{dao: dao}
 }
 
-func (a *authService) SignIn(loginDTO dto.LoginDTO) (*datastruct.UserModel, error) {
+func (a *authService) SignIn(loginDTO dto.LoginDTO) (*datastruct.UserModel, *jwt.JWTToken, error) {
 	password, err := a.dao.NewUserQuery().GetUserPasswordByEmail(loginDTO.Email)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(*password), []byte(loginDTO.Password))
 	if err != nil {
-		return nil, fmt.Errorf("passwords dont match %v", err)
+		return nil, nil, fmt.Errorf("passwords dont match %v", err)
 	} else {
 		userData, err := a.dao.NewUserQuery().GetUserByEmail(loginDTO.Email)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
-		return userData, nil
+		jwtToken, err := jwt.CreateJWT(strconv.Itoa(int(userData.UserID)), userData.Email, string(userData.Role))
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return userData, &jwtToken, nil
 	}
 }
 

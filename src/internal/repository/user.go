@@ -83,33 +83,13 @@ func (u *userQuery) GetUserPasswordByEmail(email string) (*string, error) {
 }
 
 func (u *userQuery) GetUserByEmail(email string) (*datastruct.UserModel, error) {
-	//userDataFromRedis, err := u.redis.Get(context.Background(), email).Result()
-	//if err == nil {
-	//	var userData datastruct.UserModel
-	//	if err := json.Unmarshal([]byte(userDataFromRedis), &userData); err != nil {
-	//		return nil, err
-	//	}
-	//	return &userData, nil
-	//}
-	//
-	//var userData datastruct.UserModel
-	//err = u.pgdb.Where("email = ?", email).First(&userData).Error
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//userDataJSON, err := json.Marshal(userData)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//err = u.redis.Set(context.Background(), email, userDataJSON, 0).Err()
-	//if err != nil {
-	//	log.Printf("Failed to set user data in Redis: %s", err.Error())
-	//}
-	//
-	//return &userData, err
-	return nil, nil
+	var userData datastruct.UserModel
+	err := u.pgdb.Where("email = ?", email).First(&userData).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &userData, err
 }
 
 //func (model *UserModel) AddDocument(data interface{}) error {
