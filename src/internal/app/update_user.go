@@ -20,23 +20,23 @@ func (m *MicroserviceServer) UpdateUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	///**
-	//Parsing Session Data from Context
-	//*/
-	//sessionUser, err := utils.ParseSessionUserFromContext(r.Context())
-	//if err != nil {
-	//	response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToParseCookie)
-	//	return
-	//}
-	//
-	///**
-	//Took the issuer identifier
-	//*/
-	//issuerId, err := utils.VerifyUserId(sessionUser.UserID)
-	//if err != nil {
-	//	response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseUserID)
-	//	return
-	//}
+	/**
+	Parsing Session Data from Context
+	*/
+	sessionUser, err := utils.ParseSessionUserFromContext(r.Context())
+	if err != nil {
+		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToParseCookie)
+		return
+	}
+
+	/**
+	Took the issuer identifier
+	*/
+	issuerId, err := utils.VerifyUserId(sessionUser.UserID)
+	if err != nil {
+		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseUserID)
+		return
+	}
 
 	var updateUser dto.UpdateUserDTO
 	err = json.NewDecoder(r.Body).Decode(&updateUser)
@@ -46,11 +46,11 @@ func (m *MicroserviceServer) UpdateUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	//updatedUser, err := m.userService.UpdateUser(updateUser, issuerId)
-	//if err != nil || updatedUser == nil {
-	//	response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToUpdateUser)
-	//	return
-	//}
+	updatedUser, err := m.userService.UpdateUser(updateUser, issuerId)
+	if err != nil || updatedUser == nil {
+		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToUpdateUser)
+		return
+	}
 
 	response.SuccessResponse(w, http.StatusOK, messages.SuccessfulUserUpdate, nil)
 	return

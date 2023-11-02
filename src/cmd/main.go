@@ -7,7 +7,6 @@ import (
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/repository"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/service"
 	"github.com/joho/godotenv"
-	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"
@@ -51,7 +50,7 @@ func main() {
 	/**
 	Run DB Migration
 	*/
-	Migrate(db)
+	datastruct.Migrate(db, &datastruct.UserModel{})
 
 	/**
 	Setting up the router
@@ -68,15 +67,4 @@ func main() {
 		log.Fatal(http.ListenAndServe("127.0.0.1:"+port, serverRouter))
 	}
 	log.Fatal(http.ListenAndServe(":"+port, serverRouter))
-}
-
-func Migrate(db *gorm.DB) {
-	errPdf := db.AutoMigrate(&datastruct.Document{})
-	if errPdf != nil {
-		return
-	}
-	err := db.AutoMigrate(&datastruct.UserModel{})
-	if err != nil {
-		return
-	}
 }

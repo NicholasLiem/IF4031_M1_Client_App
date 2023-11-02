@@ -41,7 +41,7 @@ func (a *authService) SignIn(loginDTO dto.LoginDTO) (*datastruct.UserModel, *jwt
 			return nil, nil, err
 		}
 
-		jwtToken, err := jwt.CreateJWT(strconv.Itoa(int(userData.UserID)), userData.Email, string(userData.Role))
+		jwtToken, err := jwt.CreateJWT(strconv.Itoa(int(userData.ID)), userData.Email, string(userData.Role))
 		if err != nil {
 			return nil, nil, err
 		}

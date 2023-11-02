@@ -27,12 +27,12 @@ func (m *MicroserviceServer) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userData, err := m.authService.SignUp(userStruct)
+	_, err = m.authService.SignUp(userStruct)
 	if err != nil {
 		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToRegister)
 		return
 	}
 
-	response.SuccessResponse(w, http.StatusOK, messages.SuccessfulRegister, userData)
+	response.SuccessResponse(w, http.StatusOK, messages.SuccessfulRegister, nil)
 	return
 }

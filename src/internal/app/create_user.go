@@ -15,7 +15,7 @@ func (m *MicroserviceServer) CreateUser(w http.ResponseWriter, r *http.Request) 
 	params := mux.Vars(r)
 	id := params["user_id"]
 
-	userID, err := utils.VerifyUserId(id)
+	_, err := utils.VerifyUserId(id)
 	if err != nil {
 		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseUserID)
 		return
@@ -34,7 +34,6 @@ func (m *MicroserviceServer) CreateUser(w http.ResponseWriter, r *http.Request) 
 	}
 
 	userModel := datastruct.UserModel{
-		UserID:    userID,
 		FirstName: newUser.FirstName,
 		LastName:  newUser.LastName,
 		Email:     newUser.Email,

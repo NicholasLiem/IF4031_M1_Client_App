@@ -83,11 +83,10 @@ func (u *userService) GetUser(requestedUserID uint, issuerID uint) (*datastruct.
 		return nil, errors.New("requested user doesn't exist")
 	}
 
-	if userByRequest.UserID == userBySession.UserID || userBySession.Role == datastruct.ADMIN {
+	if userByRequest.ID == userBySession.ID || userBySession.Role == datastruct.ADMIN {
 		return userByRequest, nil
 	} else {
 		return &datastruct.UserModel{
-			UserID:    userByRequest.UserID,
 			FirstName: userByRequest.FirstName,
 			LastName:  userByRequest.LastName,
 			Email:     userByRequest.Email,
