@@ -3,7 +3,6 @@ module github.com/NicholasLiem/IF4031_M1_Client_App
 go 1.20
 
 require (
-	github.com/go-pdf/fpdf v0.8.0
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/securecookie v1.1.1
