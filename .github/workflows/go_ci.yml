@@ -18,13 +18,20 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: '1.20'
-          cache-dependency-path: ./src/go.sum
+          cache-dependency-path: go.sum
+
+      - name: Debug Information
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Contents of go.mod:"
+          cat go.mod
+        continue-on-error: true
 
       - name: Install Go dependencies
         run: go mod download
 
       - name: Build
-        run: go build -v ./src/...
+        run: go build -v ./...
 
       - name: Test
-        run: go test -v ./src/...
+        run: go test -v ./...
