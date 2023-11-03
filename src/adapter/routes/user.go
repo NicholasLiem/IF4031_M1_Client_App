@@ -37,6 +37,13 @@ func UserRoutes(server app.MicroserviceServer) structs.RoutePrefix {
 				server.GetUserData,
 				true,
 			},
+			{
+				"Get bookings from user",
+				"GET",
+				"/{customer_id}/bookings",
+				server.GetBookingsFromCustomerID,
+				true,
+			},
 		},
 	}
 }

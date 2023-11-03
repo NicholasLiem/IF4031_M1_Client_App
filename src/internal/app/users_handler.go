@@ -15,7 +15,7 @@ func (m *MicroserviceServer) CreateUser(w http.ResponseWriter, r *http.Request) 
 	params := mux.Vars(r)
 	id := params["user_id"]
 
-	_, err := utils.VerifyUserId(id)
+	_, err := utils.VerifyId(id)
 	if err != nil {
 		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
 		return
@@ -56,7 +56,7 @@ func (m *MicroserviceServer) GetUserData(w http.ResponseWriter, r *http.Request)
 	*/
 	params := mux.Vars(r)
 	paramsUserID := params["user_id"]
-	requestedUserID, err := utils.VerifyUserId(paramsUserID)
+	requestedUserID, err := utils.VerifyId(paramsUserID)
 	if err != nil {
 		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
 		return
@@ -74,7 +74,7 @@ func (m *MicroserviceServer) GetUserData(w http.ResponseWriter, r *http.Request)
 	/**
 	Took the issuer identifier
 	*/
-	issuerId, err := utils.VerifyUserId(sessionUser.UserID)
+	issuerId, err := utils.VerifyId(sessionUser.UserID)
 	if err != nil {
 		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
 		return
@@ -96,7 +96,7 @@ func (m *MicroserviceServer) UpdateUser(w http.ResponseWriter, r *http.Request) 
 	params := mux.Vars(r)
 	paramsUserID := params["user_id"]
 
-	userID, err := utils.VerifyUserId(paramsUserID)
+	userID, err := utils.VerifyId(paramsUserID)
 	if err != nil {
 		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
 		return
@@ -114,7 +114,7 @@ func (m *MicroserviceServer) UpdateUser(w http.ResponseWriter, r *http.Request) 
 	/**
 	Took the issuer identifier
 	*/
-	issuerId, err := utils.VerifyUserId(sessionUser.UserID)
+	issuerId, err := utils.VerifyId(sessionUser.UserID)
 	if err != nil {
 		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
 		return
@@ -140,7 +140,7 @@ func (m *MicroserviceServer) UpdateUser(w http.ResponseWriter, r *http.Request) 
 func (m *MicroserviceServer) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	paramsUserID := params["user_id"]
-	userID, err := utils.VerifyUserId(paramsUserID)
+	userID, err := utils.VerifyId(paramsUserID)
 	if err != nil {
 		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
 		return
@@ -158,7 +158,7 @@ func (m *MicroserviceServer) DeleteUser(w http.ResponseWriter, r *http.Request) 
 	/**
 	Took the issuer identifier
 	*/
-	issuerId, err := utils.VerifyUserId(sessionUser.UserID)
+	issuerId, err := utils.VerifyId(sessionUser.UserID)
 	if err != nil {
 		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
 		return
@@ -172,4 +172,34 @@ func (m *MicroserviceServer) DeleteUser(w http.ResponseWriter, r *http.Request) 
 
 	response.SuccessResponse(w, http.StatusOK, messages.SuccessfulDataDeletion, nil)
 	return
+}
+
+func (m *MicroserviceServer) GetBookingsFromCustomerID(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	customerID := params["customer_id"]
+	requestedCustomerID, err := utils.VerifyId(customerID)
+	if err != nil {
+		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+		return
+	}
+
+	sessionUser, err := utils.ParseSessionUserFromContext(r.Context())
+	if err != nil {
+		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToParseCookie)
+		return
+	}
+
+	issuerID, err := utils.VerifyId(sessionUser.UserID)
+	if err != nil {
+		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+		return
+	}
+
+	bookingsData, err := m.bookingService.GetBookingsFromCustomerID(issuerID, requestedCustomerID)
+	if err != nil {
+		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.SuccessResponse(w, http.StatusOK, messages.SuccessfulDataObtain, bookingsData)
 }

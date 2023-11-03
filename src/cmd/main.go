@@ -38,6 +38,7 @@ func main() {
 	dao := repository.NewDAO(db)
 	userService := service.NewUserService(dao)
 	authService := service.NewAuthService(dao)
+	bookingService := service.NewBookingService(dao)
 
 	/**
 	Registering Services to Server
@@ -45,12 +46,13 @@ func main() {
 	server := app.NewMicroservice(
 		userService,
 		authService,
+		bookingService,
 	)
 
 	/**
 	Run DB Migration
 	*/
-	datastruct.Migrate(db, &datastruct.UserModel{})
+	datastruct.Migrate(db, &datastruct.UserModel{}, &datastruct.Booking{})
 
 	/**
 	Setting up the router

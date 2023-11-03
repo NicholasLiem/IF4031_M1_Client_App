@@ -20,6 +20,8 @@ const (
 	SessionExpired       = "The session is already expired"
 	FailToUnMarshalData  = "Fail to unmarshal data"
 	FailToEncodeCookie   = "Fail to encode cookie"
+	UnauthorizedAccess   = "Access denied"
+	DataNotFound         = "Data not found"
 )
 
 /*

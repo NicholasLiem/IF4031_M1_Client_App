@@ -11,6 +11,7 @@ import (
 
 type DAO interface {
 	NewUserQuery() UserQuery
+	NewBookingQuery() BookingQuery
 }
 
 type dao struct {
@@ -68,4 +69,7 @@ func SetupDB() *gorm.DB {
 
 func (d *dao) NewUserQuery() UserQuery {
 	return NewUserQuery(d.pgdb)
+}
+func (d *dao) NewBookingQuery() BookingQuery {
+	return NewBookingQuery(d.pgdb)
 }

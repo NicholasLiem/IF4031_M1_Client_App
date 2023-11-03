@@ -4,11 +4,12 @@ import "gorm.io/gorm"
 
 type UserModel struct {
 	gorm.Model
-	FirstName string `gorm:"column:first_name" json:"first_name,omitempty"`
-	LastName  string `gorm:"column:last_name" json:"last_name,omitempty"`
-	Email     string `gorm:"uniqueIndex:email" json:"email,omitempty"`
-	Password  string `gorm:"column:password;not null" json:"password,omitempty"`
-	Role      Role   `gorm:"column:role;not null;default:'user'" json:"role,omitempty"`
+	FirstName string    `gorm:"column:first_name" json:"first_name,omitempty"`
+	LastName  string    `gorm:"column:last_name" json:"last_name,omitempty"`
+	Email     string    `gorm:"uniqueIndex:email" json:"email,omitempty"`
+	Password  string    `gorm:"column:password;not null" json:"password,omitempty"`
+	Role      Role      `gorm:"column:role;not null" json:"role,omitempty"`
+	Bookings  []Booking `gorm:"foreignKey:CustomerID" json:"-"`
 }
 
 type Role string
