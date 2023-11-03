@@ -17,7 +17,7 @@ type BookingStatus string
 const (
 	BookingFailed    BookingStatus = "failed"
 	BookingSuccess   BookingStatus = "success"
-	BookingOnProcess BookingStatus = "on-process"
+	BookingOnProcess BookingStatus = "on-going"
 )
 
 func IsValidStatus(status BookingStatus) bool {
