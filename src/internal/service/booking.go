@@ -1,14 +1,18 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
+	"github.com/NicholasLiem/IF4031_M1_Client_App/adapter/clients"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/datastruct"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/dto"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/repository"
+	"io"
+	"net/http"
 )
 
 type BookingService interface {
-	CreateBooking(booking dto.CreateBookingDTO) (*datastruct.Booking, error)
+	CreateBooking(restClient clients.RestClient, booking dto.CreateBookingDTO) (*datastruct.Booking, error)
 	UpdateBooking(issuerID, bookingID uint, booking dto.UpdateBookingDTO) (*datastruct.Booking, error)
 	DeleteBooking(issuerID, bookingID uint) (*datastruct.Booking, error)
 	GetBooking(issuerID, bookingID uint) (*datastruct.Booking, error)
@@ -23,19 +27,53 @@ func NewBookingService(dao repository.DAO) BookingService {
 	return &bookingService{dao: dao}
 }
 
-func (bs *bookingService) CreateBooking(bookingDTO dto.CreateBookingDTO) (*datastruct.Booking, error) {
-	createdBooking, err := bs.dao.NewBookingQuery().CreateBooking(datastruct.Booking{
+func (bs *bookingService) CreateBooking(restClient clients.RestClient, bookingDTO dto.CreateBookingDTO) (*datastruct.Booking, error) {
+	booking := datastruct.Booking{
 		CustomerID: bookingDTO.CustomerID,
 		EventID:    bookingDTO.EventID,
 		SeatID:     bookingDTO.SeatID,
 		Status:     datastruct.BookingOnProcess,
+	}
+
+	requestBody, err := json.Marshal(booking)
+	if err != nil {
+		return nil, err
+	}
+
+	externalAPIPath := "/v1/test"
+	response, err := restClient.Post(externalAPIPath, requestBody)
+	if err != nil {
+		return nil, err
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(response.Body)
+
+	if response.StatusCode != http.StatusOK {
+		return nil, errors.New("External API request failed with status code: " + response.Status)
+	}
+
+	var bookingResponse dto.TicketAppBookingResponseDTO
+	decoder := json.NewDecoder(response.Body)
+	if err := decoder.Decode(&bookingResponse); err != nil {
+		return nil, err
+	}
+
+	createdLocalBooking, err := bs.dao.NewBookingQuery().CreateBooking(datastruct.Booking{
+		CustomerID: bookingDTO.CustomerID,
+		EventID:    bookingDTO.EventID,
+		SeatID:     bookingDTO.SeatID,
+		Status:     bookingResponse.Status,
 	})
 
-	/**
-	Proses ngirim ke ticket app
-	*/
+	if err != nil {
+		return nil, err
+	}
 
-	return createdBooking, err
+	return createdLocalBooking, nil
 }
 
 func (bs *bookingService) UpdateBooking(issuerID uint, bookingID uint, bookingDTO dto.UpdateBookingDTO) (*datastruct.Booking, error) {

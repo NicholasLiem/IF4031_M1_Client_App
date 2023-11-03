@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/adapter"
+	"github.com/NicholasLiem/IF4031_M1_Client_App/adapter/clients"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/app"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/datastruct"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/repository"
@@ -13,12 +15,6 @@ import (
 )
 
 func main() {
-
-	/**
-	Creating context
-	*/
-	//ctx := context.Background()
-
 	/**
 	Loading .env file
 	*/
@@ -26,6 +22,17 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
+
+	/**
+	Setting up http client
+	*/
+	bookingAPIURL := os.Getenv("BASE_TICKET_APP_URL")
+	fmt.Println(bookingAPIURL)
+	headers := map[string]string{
+		"Authorization": "Bearer YourAccessToken",
+		"Content-Type":  "application/json",
+	}
+	restClient := clients.NewRestClient(bookingAPIURL, headers)
 
 	/**
 	Setting up DB
@@ -44,6 +51,7 @@ func main() {
 	Registering Services to Server
 	*/
 	server := app.NewMicroservice(
+		*restClient,
 		userService,
 		authService,
 		bookingService,
