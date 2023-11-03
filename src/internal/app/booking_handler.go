@@ -23,7 +23,25 @@ func (m *MicroserviceServer) CreateBooking(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	bookingData, err := m.bookingService.CreateBooking(m.restClient, newBooking)
+	/**
+	Parsing Session Data from Context
+	*/
+	sessionUser, err := utils.ParseSessionUserFromContext(r.Context())
+	if err != nil {
+		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToParseCookie)
+		return
+	}
+
+	/**
+	Took the issuer identifier
+	*/
+	issuerId, err := utils.VerifyId(sessionUser.UserID)
+	if err != nil {
+		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+		return
+	}
+
+	bookingData, err := m.bookingService.CreateBooking(m.restClient, issuerId, newBooking)
 	if err != nil {
 		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

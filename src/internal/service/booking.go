@@ -13,7 +13,7 @@ import (
 )
 
 type BookingService interface {
-	CreateBooking(restClient clients.RestClient, booking dto.CreateBookingDTO) (*datastruct.Booking, error)
+	CreateBooking(restClient clients.RestClient, issuerID uint, booking dto.CreateBookingDTO) (*datastruct.Booking, error)
 	UpdateBooking(issuerID, bookingID uint, booking dto.UpdateBookingDTO) (*datastruct.Booking, error)
 	DeleteBooking(issuerID, bookingID uint) (*datastruct.Booking, error)
 	GetBooking(issuerID, bookingID uint) (*datastruct.Booking, error)
@@ -28,12 +28,20 @@ func NewBookingService(dao repository.DAO) BookingService {
 	return &bookingService{dao: dao}
 }
 
-func (bs *bookingService) CreateBooking(restClient clients.RestClient, bookingDTO dto.CreateBookingDTO) (*datastruct.Booking, error) {
+func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID uint, bookingDTO dto.CreateBookingDTO) (*datastruct.Booking, error) {
+	userBySession, err := bs.dao.NewUserQuery().GetUser(issuerID)
+	if err != nil {
+		return nil, errors.New("user isn't authorized")
+	}
+
+	if userBySession.Role != datastruct.ADMIN && issuerID != bookingDTO.CustomerID {
+		return nil, errors.New("user isn't authorized")
+	}
+
 	booking := datastruct.Booking{
 		CustomerID: bookingDTO.CustomerID,
 		EventID:    bookingDTO.EventID,
 		SeatID:     bookingDTO.SeatID,
-		Status:     datastruct.BookingOnProcess,
 	}
 
 	requestBody, err := json.Marshal(booking)
@@ -41,7 +49,7 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, bookingDT
 		return nil, err
 	}
 
-	externalAPIPath := "/test/"
+	externalAPIPath := "/book"
 	response, err := restClient.Post(externalAPIPath, requestBody)
 	if err != nil {
 		return nil, err
