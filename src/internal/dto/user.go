@@ -8,7 +8,6 @@ type CreateUserDTO struct {
 }
 
 type UpdateUserDTO struct {
-	UserID    uint   `json:"user_id,omitempty"`
 	Email     string `json:"email,omitempty"`
 	FirstName string `json:"first_name,omitempty"`
 	LastName  string `json:"last_name,omitempty"`

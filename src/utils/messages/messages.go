@@ -5,11 +5,12 @@ package messages
 Error messages
 */
 const (
-	FailToParseUserID    = "Failed to parse user ID"
+	FailToParseID        = "Failed to parse data ID"
 	InvalidRequestData   = "Failed to parse request data"
-	FailToCreateUser     = "Failed to create new user"
-	FailToDeleteUser     = "Failed to delete a user"
-	FailToUpdateUser     = "Failed to update user"
+	FailToCreateData     = "Failed to create new data"
+	FailToGetData        = "Failed to get data"
+	FailToDeleteData     = "Failed to delete a data"
+	FailToUpdateData     = "Failed to update data"
 	UnsuccessfulLogin    = "Login attempt failed"
 	FailToRegister       = "Registration attempt failed"
 	JWTClaimError        = "JWT claim error"
@@ -26,10 +27,10 @@ const (
 Success messages
 */
 const (
-	SuccessfulUserObtain   = "Successfully obtained user data"
-	SuccessfulUserCreation = "Successfully created a new user"
-	SuccessfulUserDeletion = "Successfully deleted a new user"
-	SuccessfulUserUpdate   = "Successfully updated a user"
+	SuccessfulDataObtain   = "Successfully obtained data"
+	SuccessfulDataCreation = "Successfully created a new"
+	SuccessfulDataDeletion = "Successfully deleted a new"
+	SuccessfulDataUpdate   = "Successfully updated a data"
 	SuccessfulLogin        = "Successfully logged in"
 	SuccessfulRegister     = "Successfully registered a user"
 	SuccessfulLogout       = "Successfully logged out"

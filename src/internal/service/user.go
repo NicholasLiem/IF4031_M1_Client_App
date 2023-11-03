@@ -10,7 +10,7 @@ import (
 
 type UserService interface {
 	CreateUser(user datastruct.UserModel) error
-	UpdateUser(user dto.UpdateUserDTO, issuerID uint) (*datastruct.UserModel, error)
+	UpdateUser(requestedUserID uint, user dto.UpdateUserDTO, issuerID uint) (*datastruct.UserModel, error)
 	DeleteUser(requestedUserID, issuerID uint) (*datastruct.UserModel, error)
 	GetUser(requestedUserID, userID uint) (*datastruct.UserModel, error)
 }
@@ -34,7 +34,7 @@ func (u *userService) CreateUser(user datastruct.UserModel) error {
 	return err
 }
 
-func (u *userService) UpdateUser(user dto.UpdateUserDTO, issuerID uint) (*datastruct.UserModel, error) {
+func (u *userService) UpdateUser(requestedUserID uint, user dto.UpdateUserDTO, issuerID uint) (*datastruct.UserModel, error) {
 	var userBySession *datastruct.UserModel
 	userBySession, err := u.dao.NewUserQuery().GetUser(issuerID)
 	if err != nil {
@@ -48,7 +48,7 @@ func (u *userService) UpdateUser(user dto.UpdateUserDTO, issuerID uint) (*datast
 		}
 
 		user.Password = string(hashedPassword)
-		updatedUser, err := u.dao.NewUserQuery().UpdateUser(user)
+		updatedUser, err := u.dao.NewUserQuery().UpdateUser(requestedUserID, user)
 		return updatedUser, err
 	}
 

@@ -8,7 +8,7 @@ import (
 
 type UserQuery interface {
 	CreateUser(user datastruct.UserModel) (*datastruct.UserModel, error)
-	UpdateUser(user dto.UpdateUserDTO) (*datastruct.UserModel, error)
+	UpdateUser(userID uint, user dto.UpdateUserDTO) (*datastruct.UserModel, error)
 	DeleteUser(userID uint) (*datastruct.UserModel, error)
 	GetUser(userID uint) (*datastruct.UserModel, error)
 	GetUserPasswordByEmail(email string) (*string, error)
@@ -39,11 +39,11 @@ func (u *userQuery) CreateUser(user datastruct.UserModel) (*datastruct.UserModel
 	return &newUser, nil
 }
 
-func (u *userQuery) UpdateUser(user dto.UpdateUserDTO) (*datastruct.UserModel, error) {
-	err := u.pgdb.Model(datastruct.UserModel{}).Where("id = ?", user.UserID).Updates(user).Error
+func (u *userQuery) UpdateUser(userID uint, user dto.UpdateUserDTO) (*datastruct.UserModel, error) {
+	err := u.pgdb.Model(datastruct.UserModel{}).Where("id = ?", userID).Updates(user).Error
 
 	var updatedUser datastruct.UserModel
-	err = u.pgdb.Where("id = ?", user.UserID).First(&updatedUser).Error
+	err = u.pgdb.Where("id = ?", userID).First(&updatedUser).Error
 	if err != nil {
 		return nil, err
 	}
