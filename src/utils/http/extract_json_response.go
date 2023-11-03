@@ -3,11 +3,17 @@ package http
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 )
 
 func GetJSONDataBytesFromResponse(response *http.Response) ([]byte, error) {
-	defer response.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(response.Body)
 
 	var jsonResponse map[string]interface{}
 	decoder := json.NewDecoder(response.Body)
