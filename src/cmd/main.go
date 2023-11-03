@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/adapter"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/adapter/clients"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/app"
@@ -27,7 +26,6 @@ func main() {
 	Setting up http client
 	*/
 	bookingAPIURL := os.Getenv("BASE_TICKET_APP_URL")
-	fmt.Println(bookingAPIURL)
 	headers := map[string]string{
 		"Authorization": "Bearer YourAccessToken",
 		"Content-Type":  "application/json",

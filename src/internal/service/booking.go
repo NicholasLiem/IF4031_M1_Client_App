@@ -7,6 +7,7 @@ import (
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/datastruct"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/dto"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/repository"
+	http2 "github.com/NicholasLiem/IF4031_M1_Client_App/utils/http"
 	"io"
 	"net/http"
 )
@@ -56,9 +57,13 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, bookingDT
 		return nil, errors.New("External API request failed with status code: " + response.Status)
 	}
 
+	dataBytes, err := http2.GetJSONDataBytesFromResponse(response)
+	if err != nil {
+		return nil, err
+	}
+
 	var bookingResponse dto.TicketAppBookingResponseDTO
-	decoder := json.NewDecoder(response.Body)
-	if err := decoder.Decode(&bookingResponse); err != nil {
+	if err := json.Unmarshal(dataBytes, &bookingResponse); err != nil {
 		return nil, err
 	}
 
@@ -69,11 +74,9 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, bookingDT
 		Status:     bookingResponse.Status,
 		Message:    bookingResponse.Message,
 	})
-
 	if err != nil {
 		return nil, err
 	}
-
 	return createdLocalBooking, nil
 }
 

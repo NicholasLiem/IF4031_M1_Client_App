@@ -23,13 +23,13 @@ func (m *MicroserviceServer) CreateBooking(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	_, err = m.bookingService.CreateBooking(m.restClient, newBooking)
+	bookingData, err := m.bookingService.CreateBooking(m.restClient, newBooking)
 	if err != nil {
 		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	response.SuccessResponse(w, http.StatusOK, messages.SuccessfulDataCreation, newBooking)
+	response.SuccessResponse(w, http.StatusOK, messages.SuccessfulDataCreation, bookingData)
 	return
 }
 
