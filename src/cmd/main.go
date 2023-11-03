@@ -26,8 +26,9 @@ func main() {
 	Setting up http client
 	*/
 	bookingAPIURL := os.Getenv("BASE_TICKET_APP_URL")
+	apiIdentifierToken := os.Getenv("CLIENT_API_KEY")
 	headers := map[string]string{
-		"Authorization": "Bearer YourAccessToken",
+		"Authorization": "Bearer " + apiIdentifierToken,
 		"Content-Type":  "application/json",
 	}
 	restClient := clients.NewRestClient(bookingAPIURL, headers)
