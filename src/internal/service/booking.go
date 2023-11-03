@@ -40,7 +40,7 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, bookingDT
 		return nil, err
 	}
 
-	externalAPIPath := "/v1/test"
+	externalAPIPath := "/test/"
 	response, err := restClient.Post(externalAPIPath, requestBody)
 	if err != nil {
 		return nil, err
@@ -67,6 +67,7 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, bookingDT
 		EventID:    bookingDTO.EventID,
 		SeatID:     bookingDTO.SeatID,
 		Status:     bookingResponse.Status,
+		Message:    bookingResponse.Message,
 	})
 
 	if err != nil {
