@@ -38,6 +38,8 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID 
 		return nil, errors.New("user isn't authorized")
 	}
 
+	//implement rollback somehow
+
 	newBooking, err := bs.dao.NewBookingQuery().CreateBooking(datastruct.Booking{
 		CustomerID: bookingDTO.CustomerID,
 		EventID:    bookingDTO.EventID,
