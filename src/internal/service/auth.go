@@ -15,7 +15,6 @@ import (
 type AuthService interface {
 	SignIn(loginDTO dto.LoginDTO) (*datastruct.UserModel, *jwt.JWTToken, error)
 	SignUp(model datastruct.UserModel) (*datastruct.UserModel, error)
-	//LogOut(userID uint) error
 }
 
 type authService struct {

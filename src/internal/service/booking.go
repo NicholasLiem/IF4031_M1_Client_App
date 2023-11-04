@@ -13,7 +13,7 @@ import (
 )
 
 type BookingService interface {
-	CreateBooking(restClient clients.RestClient, issuerID uint, booking dto.CreateBookingDTO) (*dto.TicketAppBookingResponseDTO, error)
+	CreateBooking(restClient clients.RestClient, issuerID uint, booking dto.CreateBookingDTO) (*dto.IncomingBookingResponseDTO, error)
 	UpdateBooking(issuerID, bookingID uint, booking dto.UpdateBookingDTO) (*datastruct.Booking, error)
 	DeleteBooking(issuerID, bookingID uint) (*datastruct.Booking, error)
 	GetBooking(issuerID, bookingID uint) (*datastruct.Booking, error)
@@ -28,7 +28,7 @@ func NewBookingService(dao repository.DAO) BookingService {
 	return &bookingService{dao: dao}
 }
 
-func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID uint, bookingDTO dto.CreateBookingDTO) (*dto.TicketAppBookingResponseDTO, error) {
+func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID uint, bookingDTO dto.CreateBookingDTO) (*dto.IncomingBookingResponseDTO, error) {
 	userBySession, err := bs.dao.NewUserQuery().GetUser(issuerID)
 	if err != nil {
 		return nil, errors.New("user isn't authorized")
@@ -82,7 +82,7 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID 
 		return nil, err
 	}
 
-	var bookingResponse dto.TicketAppBookingResponseDTO
+	var bookingResponse dto.IncomingBookingResponseDTO
 	if err := json.Unmarshal(dataBytes, &bookingResponse); err != nil {
 		return nil, err
 	}

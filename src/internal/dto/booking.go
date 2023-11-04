@@ -16,7 +16,7 @@ type UpdateBookingDTO struct {
 	Message    string `json:"message"`
 }
 
-type TicketAppBookingResponseDTO struct {
+type IncomingBookingResponseDTO struct {
 	InvoiceID  string                   `json:"invoice_id,omitempty"`
 	BookingID  uint                     `json:"booking_id,omitempty"`
 	EventID    uint                     `json:"event_id,omitempty"`
