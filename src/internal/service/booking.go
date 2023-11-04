@@ -13,7 +13,7 @@ import (
 )
 
 type BookingService interface {
-	CreateBooking(restClient clients.RestClient, issuerID uint, booking dto.CreateBookingDTO) (*datastruct.Booking, error)
+	CreateBooking(restClient clients.RestClient, issuerID uint, booking dto.CreateBookingDTO) (*dto.TicketAppBookingResponseDTO, error)
 	UpdateBooking(issuerID, bookingID uint, booking dto.UpdateBookingDTO) (*datastruct.Booking, error)
 	DeleteBooking(issuerID, bookingID uint) (*datastruct.Booking, error)
 	GetBooking(issuerID, bookingID uint) (*datastruct.Booking, error)
@@ -28,7 +28,7 @@ func NewBookingService(dao repository.DAO) BookingService {
 	return &bookingService{dao: dao}
 }
 
-func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID uint, bookingDTO dto.CreateBookingDTO) (*datastruct.Booking, error) {
+func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID uint, bookingDTO dto.CreateBookingDTO) (*dto.TicketAppBookingResponseDTO, error) {
 	userBySession, err := bs.dao.NewUserQuery().GetUser(issuerID)
 	if err != nil {
 		return nil, errors.New("user isn't authorized")
@@ -38,7 +38,17 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID 
 		return nil, errors.New("user isn't authorized")
 	}
 
-	booking := datastruct.Booking{
+	newBooking, err := bs.dao.NewBookingQuery().CreateBooking(datastruct.Booking{
+		CustomerID: bookingDTO.CustomerID,
+		EventID:    bookingDTO.EventID,
+		SeatID:     bookingDTO.SeatID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	booking := datastruct.BookingRequestDTO{
+		BookingID:  newBooking.ID,
 		CustomerID: bookingDTO.CustomerID,
 		EventID:    bookingDTO.EventID,
 		SeatID:     bookingDTO.SeatID,
@@ -75,17 +85,18 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID 
 		return nil, err
 	}
 
-	createdLocalBooking, err := bs.dao.NewBookingQuery().CreateBooking(datastruct.Booking{
-		CustomerID: bookingDTO.CustomerID,
-		EventID:    bookingDTO.EventID,
-		SeatID:     bookingDTO.SeatID,
+	updatedBookingData := datastruct.Booking{
+		CustomerID: newBooking.CustomerID,
+		EventID:    newBooking.EventID,
+		SeatID:     newBooking.SeatID,
 		Status:     bookingResponse.Status,
 		Message:    bookingResponse.Message,
-	})
+	}
+	_, err = bs.dao.NewBookingQuery().UpdateBooking(newBooking.ID, updatedBookingData)
 	if err != nil {
 		return nil, err
 	}
-	return createdLocalBooking, nil
+	return &bookingResponse, nil
 }
 
 func (bs *bookingService) UpdateBooking(issuerID uint, bookingID uint, bookingDTO dto.UpdateBookingDTO) (*datastruct.Booking, error) {

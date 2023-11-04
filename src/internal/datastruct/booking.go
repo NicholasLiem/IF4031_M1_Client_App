@@ -14,6 +14,13 @@ type Booking struct {
 	Customer   UserModel     `gorm:"foreignKey:CustomerID" json:"-"`
 }
 
+type BookingRequestDTO struct {
+	BookingID  uint `json:"booking_id,omitempty"`
+	CustomerID uint `json:"customer_id,omitempty"`
+	EventID    uint `json:"event_id,omitempty"`
+	SeatID     uint `json:"seat_id,omitempty"`
+}
+
 type BookingStatus string
 
 const (

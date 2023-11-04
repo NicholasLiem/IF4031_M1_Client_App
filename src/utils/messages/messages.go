@@ -30,8 +30,8 @@ Success messages
 */
 const (
 	SuccessfulDataObtain   = "Successfully obtained data"
-	SuccessfulDataCreation = "Successfully created a new"
-	SuccessfulDataDeletion = "Successfully deleted a new"
+	SuccessfulDataCreation = "Successfully created a new data"
+	SuccessfulDataDeletion = "Successfully deleted a data"
 	SuccessfulDataUpdate   = "Successfully updated a data"
 	SuccessfulLogin        = "Successfully logged in"
 	SuccessfulRegister     = "Successfully registered a user"

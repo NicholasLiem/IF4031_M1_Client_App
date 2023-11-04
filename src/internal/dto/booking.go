@@ -17,7 +17,10 @@ type UpdateBookingDTO struct {
 }
 
 type TicketAppBookingResponseDTO struct {
-	BookingID uint                     `json:"booking_id"`
-	Status    datastruct.BookingStatus `json:"status"`
-	Message   string                   `json:"message"`
+	BookingID  uint                     `json:"booking_id"`
+	CustomerID uint                     `json:"customer_id"`
+	InvoiceID  string                   `json:"invoice_id"`
+	PaymentURL string                   `json:"payment_url"`
+	Status     datastruct.BookingStatus `json:"status"`
+	Message    string                   `json:"message"`
 }
