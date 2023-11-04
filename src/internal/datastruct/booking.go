@@ -9,16 +9,18 @@ type Booking struct {
 	PaymentURL string        `gorm:"payment_url" json:"payment_url,omitempty"`
 	EventID    uint          `gorm:"column:event_id" json:"event_id,omitempty"`
 	SeatID     uint          `gorm:"column:seat_id" json:"seat_id,omitempty"`
+	Email      string        `gorm:"column:email" json:"email,omitempty"`
 	Status     BookingStatus `gorm:"column:status" json:"status,omitempty"`
 	Message    string        `gorm:"column:message" json:"message,omitempty"`
 	Customer   UserModel     `gorm:"foreignKey:CustomerID" json:"-"`
 }
 
 type BookingRequestDTO struct {
-	BookingID  uint `json:"booking_id,omitempty"`
-	CustomerID uint `json:"customer_id,omitempty"`
-	EventID    uint `json:"event_id,omitempty"`
-	SeatID     uint `json:"seat_id,omitempty"`
+	BookingID  uint   `json:"booking_id,omitempty"`
+	CustomerID uint   `json:"customer_id,omitempty"`
+	EventID    uint   `json:"event_id,omitempty"`
+	SeatID     uint   `json:"seat_id,omitempty"`
+	Email      string `json:"email,omitempty"`
 }
 
 type BookingStatus string

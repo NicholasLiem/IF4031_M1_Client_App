@@ -38,12 +38,17 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID 
 		return nil, errors.New("user isn't authorized")
 	}
 
-	//implement rollback somehow
+	customer, err := bs.dao.NewUserQuery().GetUser(bookingDTO.CustomerID)
+	if err != nil || customer == nil {
+		return nil, errors.New("customer not found")
+	}
 
+	//implement rollback somehow
 	newBooking, err := bs.dao.NewBookingQuery().CreateBooking(datastruct.Booking{
 		CustomerID: bookingDTO.CustomerID,
 		EventID:    bookingDTO.EventID,
 		SeatID:     bookingDTO.SeatID,
+		Email:      customer.Email,
 	})
 	if err != nil {
 		return nil, err
@@ -54,6 +59,7 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID 
 		CustomerID: bookingDTO.CustomerID,
 		EventID:    bookingDTO.EventID,
 		SeatID:     bookingDTO.SeatID,
+		Email:      newBooking.Email,
 	}
 
 	requestBody, err := json.Marshal(booking)
@@ -91,6 +97,7 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID 
 		CustomerID: newBooking.CustomerID,
 		EventID:    newBooking.EventID,
 		SeatID:     newBooking.SeatID,
+		Email:      customer.Email,
 		Status:     bookingResponse.Status,
 		Message:    bookingResponse.Message,
 	}
