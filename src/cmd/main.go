@@ -1,6 +1,10 @@
 package main
 
 import (
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/NicholasLiem/IF4031_M1_Client_App/adapter"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/adapter/clients"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/app"
@@ -8,9 +12,6 @@ import (
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/repository"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/service"
 	"github.com/joho/godotenv"
-	"log"
-	"net/http"
-	"os"
 )
 
 func main() {
@@ -39,6 +40,11 @@ func main() {
 	db := repository.SetupDB()
 
 	/**
+	Seeder DB
+	*/
+	// seeder
+
+	/**
 	Registering DAO's and Services
 	*/
 	dao := repository.NewDAO(db)
@@ -59,7 +65,7 @@ func main() {
 	/**
 	Run DB Migration
 	*/
-	datastruct.Migrate(db, &datastruct.UserModel{}, &datastruct.Booking{})
+	datastruct.Migrate(db, &datastruct.User{}, &datastruct.Booking{})
 
 	/**
 	Setting up the router

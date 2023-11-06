@@ -2,11 +2,12 @@ package app
 
 import (
 	"encoding/json"
+	"net/http"
+	"time"
+
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/dto"
 	response "github.com/NicholasLiem/IF4031_M1_Client_App/utils/http"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/utils/messages"
-	"net/http"
-	"time"
 )
 
 func (m *MicroserviceServer) Login(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +51,7 @@ func (m *MicroserviceServer) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userStruct, err := dto.SignupDTOToUserModel(signUpDTO)
+	userStruct, err := dto.SignupDTOToUser(signUpDTO)
 	if err != nil {
 		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToRegister)
 		return

@@ -14,8 +14,8 @@ type SignupDTO struct {
 	Password  string `json:"password,omitempty"`
 }
 
-func SignupDTOToUserModel(signupDTO SignupDTO) (datastruct.UserModel, error) {
-	userModel := datastruct.UserModel{
+func SignupDTOToUser(signupDTO SignupDTO) (datastruct.User, error) {
+	userModel := datastruct.User{
 		FirstName: signupDTO.FirstName,
 		LastName:  signupDTO.LastName,
 		Email:     signupDTO.Email,

@@ -3,13 +3,14 @@ package service
 import (
 	"encoding/json"
 	"errors"
+	"io"
+	"net/http"
+
 	"github.com/NicholasLiem/IF4031_M1_Client_App/adapter/clients"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/datastruct"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/dto"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/repository"
 	http2 "github.com/NicholasLiem/IF4031_M1_Client_App/utils/http"
-	"io"
-	"net/http"
 )
 
 type BookingService interface {
@@ -109,7 +110,7 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID 
 }
 
 func (bs *bookingService) UpdateBooking(issuerID uint, bookingID uint, bookingDTO dto.UpdateBookingDTO) (*datastruct.Booking, error) {
-	var userBySession *datastruct.UserModel
+	var userBySession *datastruct.User
 	userBySession, err := bs.dao.NewUserQuery().GetUser(issuerID)
 	if err != nil {
 		return nil, errors.New("user isn't authorized")
@@ -136,7 +137,7 @@ func (bs *bookingService) UpdateBooking(issuerID uint, bookingID uint, bookingDT
 }
 
 func (bs *bookingService) DeleteBooking(issuerID, bookingID uint) (*datastruct.Booking, error) {
-	var userBySession *datastruct.UserModel
+	var userBySession *datastruct.User
 	userBySession, err := bs.dao.NewUserQuery().GetUser(issuerID)
 	if err != nil {
 		return nil, errors.New("user isn't authorized")

@@ -3,18 +3,19 @@ package service
 import (
 	"errors"
 	"fmt"
+	"strconv"
+
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/datastruct"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/dto"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/repository"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/utils"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/utils/jwt"
 	"golang.org/x/crypto/bcrypt"
-	"strconv"
 )
 
 type AuthService interface {
-	SignIn(loginDTO dto.LoginDTO) (*datastruct.UserModel, *jwt.JWTToken, error)
-	SignUp(model datastruct.UserModel) (*datastruct.UserModel, error)
+	SignIn(loginDTO dto.LoginDTO) (*datastruct.User, *jwt.JWTToken, error)
+	SignUp(model datastruct.User) (*datastruct.User, error)
 }
 
 type authService struct {
@@ -25,7 +26,7 @@ func NewAuthService(dao repository.DAO) AuthService {
 	return &authService{dao: dao}
 }
 
-func (a *authService) SignIn(loginDTO dto.LoginDTO) (*datastruct.UserModel, *jwt.JWTToken, error) {
+func (a *authService) SignIn(loginDTO dto.LoginDTO) (*datastruct.User, *jwt.JWTToken, error) {
 	password, err := a.dao.NewUserQuery().GetUserPasswordByEmail(loginDTO.Email)
 	if err != nil {
 		return nil, nil, err
@@ -49,7 +50,7 @@ func (a *authService) SignIn(loginDTO dto.LoginDTO) (*datastruct.UserModel, *jwt
 	}
 }
 
-func (a *authService) SignUp(model datastruct.UserModel) (*datastruct.UserModel, error) {
+func (a *authService) SignUp(model datastruct.User) (*datastruct.User, error) {
 
 	if !utils.IsEmailValid(model.Email) {
 		return nil, errors.New("email is not valid")

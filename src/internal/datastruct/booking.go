@@ -12,7 +12,7 @@ type Booking struct {
 	Email      string        `gorm:"column:email" json:"email,omitempty"`
 	Status     BookingStatus `gorm:"column:status" json:"status,omitempty"`
 	Message    string        `gorm:"column:message" json:"message,omitempty"`
-	Customer   UserModel     `gorm:"foreignKey:CustomerID" json:"-"`
+	Customer   User          `gorm:"foreignKey:CustomerID" json:"-"`
 }
 
 type BookingRequestDTO struct {

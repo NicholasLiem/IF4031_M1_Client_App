@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/datastruct"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/dto"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/repository"
@@ -9,10 +10,10 @@ import (
 )
 
 type UserService interface {
-	CreateUser(user datastruct.UserModel) error
-	UpdateUser(requestedUserID uint, user dto.UpdateUserDTO, issuerID uint) (*datastruct.UserModel, error)
-	DeleteUser(requestedUserID, issuerID uint) (*datastruct.UserModel, error)
-	GetUser(requestedUserID, userID uint) (*datastruct.UserModel, error)
+	CreateUser(user datastruct.User) error
+	UpdateUser(requestedUserID uint, user dto.UpdateUserDTO, issuerID uint) (*datastruct.User, error)
+	DeleteUser(requestedUserID, issuerID uint) (*datastruct.User, error)
+	GetUser(requestedUserID, userID uint) (*datastruct.User, error)
 }
 
 type userService struct {
@@ -23,7 +24,7 @@ func NewUserService(dao repository.DAO) UserService {
 	return &userService{dao: dao}
 }
 
-func (u *userService) CreateUser(user datastruct.UserModel) error {
+func (u *userService) CreateUser(user datastruct.User) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.MinCost)
 	if err != nil {
 		return err
@@ -34,8 +35,8 @@ func (u *userService) CreateUser(user datastruct.UserModel) error {
 	return err
 }
 
-func (u *userService) UpdateUser(requestedUserID uint, user dto.UpdateUserDTO, issuerID uint) (*datastruct.UserModel, error) {
-	var userBySession *datastruct.UserModel
+func (u *userService) UpdateUser(requestedUserID uint, user dto.UpdateUserDTO, issuerID uint) (*datastruct.User, error) {
+	var userBySession *datastruct.User
 	userBySession, err := u.dao.NewUserQuery().GetUser(issuerID)
 	if err != nil {
 		return nil, errors.New("user isn't authorized")
@@ -55,8 +56,8 @@ func (u *userService) UpdateUser(requestedUserID uint, user dto.UpdateUserDTO, i
 	return nil, errors.New("unauthorized access")
 }
 
-func (u *userService) DeleteUser(requestedUserID, issuerID uint) (*datastruct.UserModel, error) {
-	var userBySession *datastruct.UserModel
+func (u *userService) DeleteUser(requestedUserID, issuerID uint) (*datastruct.User, error) {
+	var userBySession *datastruct.User
 	userBySession, err := u.dao.NewUserQuery().GetUser(issuerID)
 	if err != nil {
 		return nil, errors.New("user isn't authorized")
@@ -70,8 +71,8 @@ func (u *userService) DeleteUser(requestedUserID, issuerID uint) (*datastruct.Us
 	return nil, errors.New("unauthorized access")
 }
 
-func (u *userService) GetUser(requestedUserID uint, issuerID uint) (*datastruct.UserModel, error) {
-	var userBySession *datastruct.UserModel
+func (u *userService) GetUser(requestedUserID uint, issuerID uint) (*datastruct.User, error) {
+	var userBySession *datastruct.User
 
 	userBySession, err := u.dao.NewUserQuery().GetUser(issuerID)
 	if err != nil {
@@ -86,7 +87,7 @@ func (u *userService) GetUser(requestedUserID uint, issuerID uint) (*datastruct.
 	if userByRequest.ID == userBySession.ID || userBySession.Role == datastruct.ADMIN {
 		return userByRequest, nil
 	} else {
-		return &datastruct.UserModel{
+		return &datastruct.User{
 			FirstName: userByRequest.FirstName,
 			LastName:  userByRequest.LastName,
 			Email:     userByRequest.Email,

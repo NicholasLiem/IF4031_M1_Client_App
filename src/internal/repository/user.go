@@ -7,12 +7,12 @@ import (
 )
 
 type UserQuery interface {
-	CreateUser(user datastruct.UserModel) (*datastruct.UserModel, error)
-	UpdateUser(userID uint, user dto.UpdateUserDTO) (*datastruct.UserModel, error)
-	DeleteUser(userID uint) (*datastruct.UserModel, error)
-	GetUser(userID uint) (*datastruct.UserModel, error)
+	CreateUser(user datastruct.User) (*datastruct.User, error)
+	UpdateUser(userID uint, user dto.UpdateUserDTO) (*datastruct.User, error)
+	DeleteUser(userID uint) (*datastruct.User, error)
+	GetUser(userID uint) (*datastruct.User, error)
 	GetUserPasswordByEmail(email string) (*string, error)
-	GetUserByEmail(email string) (*datastruct.UserModel, error)
+	GetUserByEmail(email string) (*datastruct.User, error)
 }
 
 type userQuery struct {
@@ -25,8 +25,8 @@ func NewUserQuery(pgdb *gorm.DB) UserQuery {
 	}
 }
 
-func (u *userQuery) CreateUser(user datastruct.UserModel) (*datastruct.UserModel, error) {
-	newUser := datastruct.UserModel{
+func (u *userQuery) CreateUser(user datastruct.User) (*datastruct.User, error) {
+	newUser := datastruct.User{
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Email:     user.Email,
@@ -39,10 +39,10 @@ func (u *userQuery) CreateUser(user datastruct.UserModel) (*datastruct.UserModel
 	return &newUser, nil
 }
 
-func (u *userQuery) UpdateUser(userID uint, user dto.UpdateUserDTO) (*datastruct.UserModel, error) {
-	err := u.pgdb.Model(datastruct.UserModel{}).Where("id = ?", userID).Updates(user).Error
+func (u *userQuery) UpdateUser(userID uint, user dto.UpdateUserDTO) (*datastruct.User, error) {
+	err := u.pgdb.Model(datastruct.User{}).Where("id = ?", userID).Updates(user).Error
 
-	var updatedUser datastruct.UserModel
+	var updatedUser datastruct.User
 	err = u.pgdb.Where("id = ?", userID).First(&updatedUser).Error
 	if err != nil {
 		return nil, err
@@ -51,9 +51,9 @@ func (u *userQuery) UpdateUser(userID uint, user dto.UpdateUserDTO) (*datastruct
 	return &updatedUser, err
 }
 
-func (u *userQuery) DeleteUser(userID uint) (*datastruct.UserModel, error) {
-	var userData datastruct.UserModel
-	err := u.pgdb.Model(datastruct.UserModel{}).Where("id = ?", userID).First(&userData).Error
+func (u *userQuery) DeleteUser(userID uint) (*datastruct.User, error) {
+	var userData datastruct.User
+	err := u.pgdb.Model(datastruct.User{}).Where("id = ?", userID).First(&userData).Error
 	if err != nil {
 		return nil, err
 	}
@@ -69,20 +69,20 @@ func (u *userQuery) DeleteUser(userID uint) (*datastruct.UserModel, error) {
 	return &userData, err
 }
 
-func (u *userQuery) GetUser(userID uint) (*datastruct.UserModel, error) {
-	var userData datastruct.UserModel
+func (u *userQuery) GetUser(userID uint) (*datastruct.User, error) {
+	var userData datastruct.User
 	err := u.pgdb.Where("id = ?", userID).First(&userData).Error
 	return &userData, err
 }
 
 func (u *userQuery) GetUserPasswordByEmail(email string) (*string, error) {
 	var password string
-	err := u.pgdb.Model(&datastruct.UserModel{}).Where("email = ?", email).Select("password").Scan(&password).Error
+	err := u.pgdb.Model(&datastruct.User{}).Where("email = ?", email).Select("password").Scan(&password).Error
 	return &password, err
 }
 
-func (u *userQuery) GetUserByEmail(email string) (*datastruct.UserModel, error) {
-	var userData datastruct.UserModel
+func (u *userQuery) GetUserByEmail(email string) (*datastruct.User, error) {
+	var userData datastruct.User
 	err := u.pgdb.Where("email = ?", email).First(&userData).Error
 	if err != nil {
 		return nil, err
