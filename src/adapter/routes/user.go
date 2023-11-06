@@ -18,7 +18,7 @@ func UserRoutes(server app.MicroserviceServer) structs.RoutePrefix {
 			},
 			{
 				"Update a user",
-				"PUT",
+				"PATCH",
 				"/{user_id}",
 				server.UpdateUser,
 				true,

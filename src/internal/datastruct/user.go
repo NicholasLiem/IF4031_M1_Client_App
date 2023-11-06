@@ -12,6 +12,14 @@ type User struct {
 	Bookings  []Booking `gorm:"foreignKey:CustomerID" json:"-"`
 }
 
+type UserResponse struct {
+	ID        uint
+	FirstName string
+	LastName  string
+	Email     string
+	Role      Role
+}
+
 type Role string
 
 const (

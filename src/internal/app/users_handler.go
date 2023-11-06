@@ -18,13 +18,13 @@ func (m *MicroserviceServer) CreateUser(w http.ResponseWriter, r *http.Request) 
 
 	_, err := utils.VerifyId(id)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
 	var newUser dto.CreateUserDTO
-	err = json.NewDecoder(r.Body).Decode(&newUser)
-	if err != nil {
+	decodeError := json.NewDecoder(r.Body).Decode(&newUser)
+	if decodeError != nil {
 		response.ErrorResponse(w, http.StatusBadRequest, messages.InvalidRequestData)
 		return
 	}
@@ -41,9 +41,9 @@ func (m *MicroserviceServer) CreateUser(w http.ResponseWriter, r *http.Request) 
 		Password:  newUser.Password,
 	}
 
-	err = m.userService.CreateUser(userModel)
-	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToCreateData)
+	httpError := m.userService.CreateUser(userModel)
+	if httpError != nil {
+		response.ErrorResponse(w, httpError.StatusCode, httpError.Message)
 		return
 	}
 
@@ -58,8 +58,9 @@ func (m *MicroserviceServer) GetUserData(w http.ResponseWriter, r *http.Request)
 	params := mux.Vars(r)
 	paramsUserID := params["user_id"]
 	requestedUserID, err := utils.VerifyId(paramsUserID)
+
 	if err != nil {
-		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
@@ -68,7 +69,7 @@ func (m *MicroserviceServer) GetUserData(w http.ResponseWriter, r *http.Request)
 	*/
 	sessionUser, err := utils.ParseSessionUserFromContext(r.Context())
 	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToParseCookie)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
@@ -77,7 +78,7 @@ func (m *MicroserviceServer) GetUserData(w http.ResponseWriter, r *http.Request)
 	*/
 	issuerId, err := utils.VerifyId(sessionUser.UserID)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
@@ -86,7 +87,7 @@ func (m *MicroserviceServer) GetUserData(w http.ResponseWriter, r *http.Request)
 	*/
 	userData, err := m.userService.GetUser(requestedUserID, issuerId)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToGetData)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 	response.SuccessResponse(w, http.StatusOK, messages.SuccessfulDataObtain, userData)
@@ -99,7 +100,7 @@ func (m *MicroserviceServer) UpdateUser(w http.ResponseWriter, r *http.Request) 
 
 	userID, err := utils.VerifyId(paramsUserID)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
@@ -108,7 +109,7 @@ func (m *MicroserviceServer) UpdateUser(w http.ResponseWriter, r *http.Request) 
 	*/
 	sessionUser, err := utils.ParseSessionUserFromContext(r.Context())
 	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToParseCookie)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
@@ -117,20 +118,20 @@ func (m *MicroserviceServer) UpdateUser(w http.ResponseWriter, r *http.Request) 
 	*/
 	issuerId, err := utils.VerifyId(sessionUser.UserID)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
 	var updateUser dto.UpdateUserDTO
-	err = json.NewDecoder(r.Body).Decode(&updateUser)
-	if err != nil {
+	decodeError := json.NewDecoder(r.Body).Decode(&updateUser)
+	if decodeError != nil {
 		response.ErrorResponse(w, http.StatusBadRequest, messages.InvalidRequestData)
 		return
 	}
 
 	updatedUser, err := m.userService.UpdateUser(userID, updateUser, issuerId)
 	if err != nil || updatedUser == nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToUpdateData)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
@@ -143,7 +144,7 @@ func (m *MicroserviceServer) DeleteUser(w http.ResponseWriter, r *http.Request) 
 	paramsUserID := params["user_id"]
 	userID, err := utils.VerifyId(paramsUserID)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
@@ -152,7 +153,7 @@ func (m *MicroserviceServer) DeleteUser(w http.ResponseWriter, r *http.Request) 
 	*/
 	sessionUser, err := utils.ParseSessionUserFromContext(r.Context())
 	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToParseCookie)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
@@ -161,13 +162,13 @@ func (m *MicroserviceServer) DeleteUser(w http.ResponseWriter, r *http.Request) 
 	*/
 	issuerId, err := utils.VerifyId(sessionUser.UserID)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
 	_, err = m.userService.DeleteUser(userID, issuerId)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
@@ -180,25 +181,25 @@ func (m *MicroserviceServer) GetBookingsFromCustomerID(w http.ResponseWriter, r 
 	customerID := params["customer_id"]
 	requestedCustomerID, err := utils.VerifyId(customerID)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
 	sessionUser, err := utils.ParseSessionUserFromContext(r.Context())
 	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToParseCookie)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
 	issuerID, err := utils.VerifyId(sessionUser.UserID)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
 	bookingsData, err := m.bookingService.GetBookingsFromCustomerID(issuerID, requestedCustomerID)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 

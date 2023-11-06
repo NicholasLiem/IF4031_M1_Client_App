@@ -12,15 +12,15 @@ import (
 
 func (m *MicroserviceServer) Login(w http.ResponseWriter, r *http.Request) {
 	var loginDTO dto.LoginDTO
-	err := json.NewDecoder(r.Body).Decode(&loginDTO)
-	if err != nil {
+	decodeError := json.NewDecoder(r.Body).Decode(&loginDTO)
+	if decodeError != nil {
 		response.ErrorResponse(w, http.StatusBadRequest, messages.InvalidRequestData)
 		return
 	}
 
-	_, jwtToken, err := m.authService.SignIn(loginDTO)
-	if err != nil {
-		response.ErrorResponse(w, http.StatusUnauthorized, messages.UnsuccessfulLogin)
+	_, jwtToken, httpError := m.authService.SignIn(loginDTO)
+	if httpError != nil {
+		response.ErrorResponse(w, httpError.StatusCode, httpError.Message)
 		return
 	}
 
@@ -40,8 +40,8 @@ func (m *MicroserviceServer) Login(w http.ResponseWriter, r *http.Request) {
 
 func (m *MicroserviceServer) Register(w http.ResponseWriter, r *http.Request) {
 	var signUpDTO dto.SignupDTO
-	err := json.NewDecoder(r.Body).Decode(&signUpDTO)
-	if err != nil {
+	decodeError := json.NewDecoder(r.Body).Decode(&signUpDTO)
+	if decodeError != nil {
 		response.ErrorResponse(w, http.StatusBadRequest, messages.InvalidRequestData)
 		return
 	}
@@ -53,13 +53,13 @@ func (m *MicroserviceServer) Register(w http.ResponseWriter, r *http.Request) {
 
 	userStruct, err := dto.SignupDTOToUser(signUpDTO)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToRegister)
+		response.ErrorResponse(w, http.StatusInternalServerError, messages.InvalidRequestData)
 		return
 	}
 
-	_, err = m.authService.SignUp(userStruct)
-	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToRegister)
+	_, httpError := m.authService.SignUp(userStruct)
+	if httpError != nil {
+		response.ErrorResponse(w, httpError.StatusCode, httpError.Message)
 		return
 	}
 
