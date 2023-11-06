@@ -2,7 +2,7 @@ package datastruct
 
 import "gorm.io/gorm"
 
-type UserModel struct {
+type User struct {
 	gorm.Model
 	FirstName string    `gorm:"column:first_name" json:"first_name,omitempty"`
 	LastName  string    `gorm:"column:last_name" json:"last_name,omitempty"`

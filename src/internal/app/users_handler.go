@@ -2,13 +2,14 @@ package app
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/datastruct"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/dto"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/utils"
 	response "github.com/NicholasLiem/IF4031_M1_Client_App/utils/http"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/utils/messages"
 	"github.com/gorilla/mux"
-	"net/http"
 )
 
 func (m *MicroserviceServer) CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +34,7 @@ func (m *MicroserviceServer) CreateUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userModel := datastruct.UserModel{
+	userModel := datastruct.User{
 		FirstName: newUser.FirstName,
 		LastName:  newUser.LastName,
 		Email:     newUser.Email,
