@@ -2,18 +2,19 @@ package app
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/dto"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/utils"
 	response "github.com/NicholasLiem/IF4031_M1_Client_App/utils/http"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/utils/messages"
 	"github.com/gorilla/mux"
-	"net/http"
 )
 
 func (m *MicroserviceServer) CreateBooking(w http.ResponseWriter, r *http.Request) {
 	var newBooking dto.CreateBookingDTO
-	err := json.NewDecoder(r.Body).Decode(&newBooking)
-	if err != nil {
+	decodeError := json.NewDecoder(r.Body).Decode(&newBooking)
+	if decodeError != nil {
 		response.ErrorResponse(w, http.StatusBadRequest, messages.InvalidRequestData)
 		return
 	}
@@ -26,24 +27,24 @@ func (m *MicroserviceServer) CreateBooking(w http.ResponseWriter, r *http.Reques
 	/**
 	Parsing Session Data from Context
 	*/
-	sessionUser, err := utils.ParseSessionUserFromContext(r.Context())
-	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToParseCookie)
+	sessionUser, httpError := utils.ParseSessionUserFromContext(r.Context())
+	if httpError != nil {
+		response.ErrorResponse(w, httpError.StatusCode, httpError.Message)
 		return
 	}
 
 	/**
 	Took the issuer identifier
 	*/
-	issuerId, err := utils.VerifyId(sessionUser.UserID)
-	if err != nil {
-		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+	issuerId, httpError := utils.VerifyId(sessionUser.UserID)
+	if httpError != nil {
+		response.ErrorResponse(w, httpError.StatusCode, httpError.Message)
 		return
 	}
 
-	bookingData, err := m.bookingService.CreateBooking(m.restClient, issuerId, newBooking)
-	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+	bookingData, httpError := m.bookingService.CreateBooking(m.restClient, issuerId, newBooking)
+	if httpError != nil {
+		response.ErrorResponse(w, httpError.StatusCode, httpError.Message)
 		return
 	}
 
@@ -56,7 +57,7 @@ func (m *MicroserviceServer) GetBooking(w http.ResponseWriter, r *http.Request) 
 	bookingID := params["booking_id"]
 	requestedBookingID, err := utils.VerifyId(bookingID)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
@@ -65,7 +66,7 @@ func (m *MicroserviceServer) GetBooking(w http.ResponseWriter, r *http.Request) 
 	*/
 	sessionUser, err := utils.ParseSessionUserFromContext(r.Context())
 	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToParseCookie)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
@@ -74,13 +75,13 @@ func (m *MicroserviceServer) GetBooking(w http.ResponseWriter, r *http.Request) 
 	*/
 	issuerId, err := utils.VerifyId(sessionUser.UserID)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
 	bookingData, err := m.bookingService.GetBooking(issuerId, requestedBookingID)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
@@ -93,13 +94,13 @@ func (m *MicroserviceServer) UpdateBooking(w http.ResponseWriter, r *http.Reques
 	bookingID := params["booking_id"]
 	requestedBookingID, err := utils.VerifyId(bookingID)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
 	var updatedBooking dto.UpdateBookingDTO
-	err = json.NewDecoder(r.Body).Decode(&updatedBooking)
-	if err != nil {
+	decodeError := json.NewDecoder(r.Body).Decode(&updatedBooking)
+	if decodeError != nil {
 		response.ErrorResponse(w, http.StatusBadRequest, messages.InvalidRequestData)
 		return
 	}
@@ -109,7 +110,7 @@ func (m *MicroserviceServer) UpdateBooking(w http.ResponseWriter, r *http.Reques
 	*/
 	sessionUser, err := utils.ParseSessionUserFromContext(r.Context())
 	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToParseCookie)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
@@ -118,13 +119,13 @@ func (m *MicroserviceServer) UpdateBooking(w http.ResponseWriter, r *http.Reques
 	*/
 	issuerId, err := utils.VerifyId(sessionUser.UserID)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
 	_, err = m.bookingService.UpdateBooking(issuerId, requestedBookingID, updatedBooking)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
@@ -137,7 +138,7 @@ func (m *MicroserviceServer) DeleteBooking(w http.ResponseWriter, r *http.Reques
 	bookingID := params["booking_id"]
 	requestedBookingID, err := utils.VerifyId(bookingID)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
@@ -146,7 +147,7 @@ func (m *MicroserviceServer) DeleteBooking(w http.ResponseWriter, r *http.Reques
 	*/
 	sessionUser, err := utils.ParseSessionUserFromContext(r.Context())
 	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, messages.FailToParseCookie)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
@@ -155,13 +156,13 @@ func (m *MicroserviceServer) DeleteBooking(w http.ResponseWriter, r *http.Reques
 	*/
 	issuerId, err := utils.VerifyId(sessionUser.UserID)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusBadRequest, messages.FailToParseID)
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
 	_, err = m.bookingService.DeleteBooking(issuerId, requestedBookingID)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 

@@ -13,6 +13,7 @@ type UserQuery interface {
 	GetUser(userID uint) (*datastruct.User, error)
 	GetUserPasswordByEmail(email string) (*string, error)
 	GetUserByEmail(email string) (*datastruct.User, error)
+	IsEmailUnique(email string, userID *uint) (bool, error)
 }
 
 type userQuery struct {
@@ -89,4 +90,21 @@ func (u *userQuery) GetUserByEmail(email string) (*datastruct.User, error) {
 	}
 
 	return &userData, err
+}
+
+func (u *userQuery) IsEmailUnique(email string, userID *uint) (bool, error) {
+	// If userID is provided, exclude it from the query
+	query := u.pgdb.Model(datastruct.User{}).Where("email = ?", email)
+	if userID != nil {
+		query = query.Where("id <> ?", *userID)
+	}
+
+	// Execute the query to check email uniqueness
+	var count int64
+	if err := query.Count(&count).Error; err != nil {
+		return false, err
+	}
+
+	// If count is 0, email is unique; otherwise, it's not
+	return count == 0, nil
 }
