@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/datastruct"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/repository"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/service"
+	"github.com/NicholasLiem/IF4031_M1_Client_App/seeder"
 	"github.com/joho/godotenv"
 )
 
@@ -40,11 +42,6 @@ func main() {
 	db := repository.SetupDB()
 
 	/**
-	Seeder DB
-	*/
-	// seeder
-
-	/**
 	Registering DAO's and Services
 	*/
 	dao := repository.NewDAO(db)
@@ -66,6 +63,17 @@ func main() {
 	Run DB Migration
 	*/
 	datastruct.Migrate(db, &datastruct.User{}, &datastruct.Booking{})
+
+	/**
+	Seeder DB
+	*/
+	seedFlag := flag.Bool("seed", false, "Seed the database")
+	flag.Parse()
+
+	if *seedFlag {
+		log.Println("Seeding the database...")
+		seeder.Seed(db)
+	}
 
 	/**
 	Setting up the router
