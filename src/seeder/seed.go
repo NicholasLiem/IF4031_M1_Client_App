@@ -8,17 +8,18 @@ import (
 	"gorm.io/gorm"
 )
 
-func seed(db *gorm.DB) {
+func Seed(db *gorm.DB) {
 	// Seed Users
-	seedUsers(db)
+	SeedUsers(db)
 }
 
-func seedUsers(db *gorm.DB) {
+func SeedUsers(db *gorm.DB) {
 	admin := datastruct.User{
 		FirstName: "admin",
 		LastName:  "admin",
 		Email:     "admin@example.com",
 		Password:  "admin",
+		Role:      "admin",
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(admin.Password), bcrypt.MinCost)
