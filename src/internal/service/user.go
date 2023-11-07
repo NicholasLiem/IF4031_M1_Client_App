@@ -69,7 +69,7 @@ func (u *userService) UpdateUser(requestedUserID uint, user dto.UpdateUserDTO, i
 		}
 	}
 
-	if userBySession.Role == datastruct.ADMIN {
+	if userBySession.Role == datastruct.ADMIN || userBySession.ID == requestedUserID {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.MinCost)
 		if err != nil {
 			return nil, &utils.HttpError{

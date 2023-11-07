@@ -45,6 +45,10 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID 
 		}
 	}
 
+	if bookingDTO.CustomerID == 0 {
+		bookingDTO.CustomerID = issuerID
+	}
+
 	customer, err := bs.dao.NewUserQuery().GetUser(bookingDTO.CustomerID)
 	if err != nil || customer == nil {
 		return nil, &utils.HttpError{

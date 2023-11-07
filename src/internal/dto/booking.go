@@ -3,7 +3,7 @@ package dto
 import "github.com/NicholasLiem/IF4031_M1_Client_App/internal/datastruct"
 
 type CreateBookingDTO struct {
-	CustomerID uint `json:"customer_id"`
+	CustomerID uint `json:"customer_id,omitempty"`
 	EventID    uint `json:"event_id"`
 	SeatID     uint `json:"seat_id"`
 }

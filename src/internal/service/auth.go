@@ -81,7 +81,6 @@ func (a *authService) SignUp(model datastruct.User) (*datastruct.User, *utils.Ht
 	model.Password = string(hashedPassword)
 
 	// Check unique constraint
-
 	isUnique, err := a.dao.NewUserQuery().IsEmailUnique(model.Email, nil)
 
 	if err != nil {
