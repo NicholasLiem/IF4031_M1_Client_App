@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"io"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/NicholasLiem/IF4031_M1_Client_App/adapter/clients"
@@ -30,15 +31,16 @@ func NewBookingService(dao repository.DAO) BookingService {
 }
 
 func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID uint, bookingDTO dto.CreateBookingDTO) (*dto.IncomingBookingResponseDTO, *utils.HttpError) {
+	// Transaction query with rollback
+	tx := bs.dao.GetDB().Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
 	userBySession, err := bs.dao.NewUserQuery().GetUser(issuerID)
 	if err != nil {
-		return nil, &utils.HttpError{
-			Message:    "unauthorized",
-			StatusCode: http.StatusUnauthorized,
-		}
-	}
-
-	if userBySession.Role != datastruct.ADMIN && issuerID != bookingDTO.CustomerID {
 		return nil, &utils.HttpError{
 			Message:    "unauthorized",
 			StatusCode: http.StatusUnauthorized,
@@ -49,6 +51,13 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID 
 		bookingDTO.CustomerID = issuerID
 	}
 
+	if userBySession.Role != datastruct.ADMIN && issuerID != bookingDTO.CustomerID {
+		return nil, &utils.HttpError{
+			Message:    "unauthorized",
+			StatusCode: http.StatusUnauthorized,
+		}
+	}
+
 	customer, err := bs.dao.NewUserQuery().GetUser(bookingDTO.CustomerID)
 	if err != nil || customer == nil {
 		return nil, &utils.HttpError{
@@ -57,14 +66,15 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID 
 		}
 	}
 
-	//implement rollback somehow
-	newBooking, err := bs.dao.NewBookingQuery().CreateBooking(datastruct.Booking{
+	// Use transaction object (tx)
+	newBooking, err := bs.dao.NewBookingQuery().CreateBooking(tx, datastruct.Booking{
 		CustomerID: bookingDTO.CustomerID,
 		EventID:    bookingDTO.EventID,
 		SeatID:     bookingDTO.SeatID,
 		Email:      customer.Email,
 	})
 	if err != nil {
+		tx.Rollback()
 		return nil, &utils.HttpError{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
@@ -98,14 +108,35 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID 
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-
+			tx.Rollback()
 		}
 	}(response.Body)
 
 	if response.StatusCode != http.StatusOK {
+		tx.Rollback()
+
+		// Read the response body to get the message
+		bodyBytes, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return nil, &utils.HttpError{
+				Message:    "Failed to read response body",
+				StatusCode: http.StatusInternalServerError,
+			}
+		}
+
+		responseBody := string(bodyBytes)
+
+		var response http2.Response
+		if err := json.Unmarshal([]byte(responseBody), &response); err != nil {
+			return nil, &utils.HttpError{
+				Message:    err.Error(),
+				StatusCode: http.StatusInternalServerError,
+			}
+		}
+
 		return nil, &utils.HttpError{
-			Message:    "External API request failed with status code: " + response.Status,
-			StatusCode: http.StatusInternalServerError,
+			Message:    "External API request failed with message: " + response.Message,
+			StatusCode: response.StatusCode,
 		}
 	}
 
@@ -140,6 +171,10 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID 
 			StatusCode: http.StatusInternalServerError,
 		}
 	}
+
+	// Commit the transaction
+	tx.Commit()
+
 	return &bookingResponse, nil
 }
 

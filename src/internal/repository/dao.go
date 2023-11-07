@@ -2,16 +2,18 @@ package repository
 
 import (
 	"fmt"
+	"log"
+	"os"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"log"
-	"os"
 )
 
 type DAO interface {
 	NewUserQuery() UserQuery
 	NewBookingQuery() BookingQuery
+	GetDB() *gorm.DB
 }
 
 type dao struct {
@@ -65,6 +67,10 @@ func SetupDB() *gorm.DB {
 	sqlDB.SetMaxOpenConns(100)
 
 	return db
+}
+
+func (d *dao) GetDB() *gorm.DB {
+	return d.pgdb
 }
 
 func (d *dao) NewUserQuery() UserQuery {
