@@ -135,7 +135,7 @@ func (m *MicroserviceServer) UpdateUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	response.SuccessResponse(w, http.StatusOK, messages.SuccessfulDataUpdate, nil)
+	response.SuccessResponse(w, http.StatusOK, messages.SuccessfulDataUpdate, updatedUser)
 	return
 }
 

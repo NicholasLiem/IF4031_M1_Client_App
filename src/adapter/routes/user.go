@@ -9,13 +9,13 @@ func UserRoutes(server app.MicroserviceServer) structs.RoutePrefix {
 	return structs.RoutePrefix{
 		Prefix: "/v1/user",
 		SubRoutes: []structs.Route{
-			{
-				"Create a new user",
-				"POST",
-				"/{user_id}",
-				server.CreateUser,
-				true,
-			},
+			// {
+			// 	"Create a new user",
+			// 	"POST",
+			// 	"/{user_id}",
+			// 	server.CreateUser,
+			// 	true,
+			// },
 			{
 				"Update a user",
 				"PATCH",
