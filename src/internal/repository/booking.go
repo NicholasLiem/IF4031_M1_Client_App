@@ -6,7 +6,7 @@ import (
 )
 
 type BookingQuery interface {
-	CreateBooking(booking datastruct.Booking) (*datastruct.Booking, error)
+	CreateBooking(tx *gorm.DB, booking datastruct.Booking) (*datastruct.Booking, error)
 	UpdateBooking(bookingID uint, booking datastruct.Booking) (*datastruct.Booking, error)
 	DeleteBooking(bookingID uint) (*datastruct.Booking, error)
 	GetBooking(bookingID uint) (*datastruct.Booking, error)
@@ -23,8 +23,8 @@ func NewBookingQuery(pgdb *gorm.DB) BookingQuery {
 	}
 }
 
-func (bq *bookingQuery) CreateBooking(booking datastruct.Booking) (*datastruct.Booking, error) {
-	if err := bq.pgdb.Create(&booking).Error; err != nil {
+func (bq *bookingQuery) CreateBooking(tx *gorm.DB, booking datastruct.Booking) (*datastruct.Booking, error) {
+	if err := tx.Create(&booking).Error; err != nil {
 		return nil, err
 	}
 	return &booking, nil
