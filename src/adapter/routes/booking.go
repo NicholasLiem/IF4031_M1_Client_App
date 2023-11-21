@@ -12,7 +12,7 @@ func BookingRoutes(server app.MicroserviceServer) structs.RoutePrefix {
 			{
 				"Create a new booking",
 				"POST",
-				"/",
+				"",
 				server.CreateBooking,
 				true,
 			},

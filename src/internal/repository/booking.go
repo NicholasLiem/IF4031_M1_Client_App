@@ -2,14 +2,15 @@ package repository
 
 import (
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/datastruct"
+	uuid "github.com/satori/go.uuid"
 	"gorm.io/gorm"
 )
 
 type BookingQuery interface {
 	CreateBooking(tx *gorm.DB, booking datastruct.Booking) (*datastruct.Booking, error)
-	UpdateBooking(bookingID uint, booking datastruct.Booking) (*datastruct.Booking, error)
-	DeleteBooking(bookingID uint) (*datastruct.Booking, error)
-	GetBooking(bookingID uint) (*datastruct.Booking, error)
+	UpdateBooking(bookingID uuid.UUID, booking datastruct.Booking) (*datastruct.Booking, error)
+	DeleteBooking(bookingID uuid.UUID) (*datastruct.Booking, error)
+	GetBooking(bookingID uuid.UUID) (*datastruct.Booking, error)
 	GetBookingsFromCustomerID(customerID uint) ([]datastruct.Booking, error)
 }
 
@@ -30,7 +31,7 @@ func (bq *bookingQuery) CreateBooking(tx *gorm.DB, booking datastruct.Booking) (
 	return &booking, nil
 }
 
-func (bq *bookingQuery) UpdateBooking(bookingID uint, booking datastruct.Booking) (*datastruct.Booking, error) {
+func (bq *bookingQuery) UpdateBooking(bookingID uuid.UUID, booking datastruct.Booking) (*datastruct.Booking, error) {
 	existingBooking := datastruct.Booking{}
 	result := bq.pgdb.First(&existingBooking, bookingID)
 	if result.Error != nil {
@@ -50,7 +51,7 @@ func (bq *bookingQuery) UpdateBooking(bookingID uint, booking datastruct.Booking
 	return &existingBooking, nil
 }
 
-func (bq *bookingQuery) DeleteBooking(bookingID uint) (*datastruct.Booking, error) {
+func (bq *bookingQuery) DeleteBooking(bookingID uuid.UUID) (*datastruct.Booking, error) {
 	existingBooking := datastruct.Booking{}
 	result := bq.pgdb.First(&existingBooking, bookingID)
 	if result.Error != nil {
@@ -65,7 +66,7 @@ func (bq *bookingQuery) DeleteBooking(bookingID uint) (*datastruct.Booking, erro
 	return &existingBooking, nil
 }
 
-func (bq *bookingQuery) GetBooking(bookingID uint) (*datastruct.Booking, error) {
+func (bq *bookingQuery) GetBooking(bookingID uuid.UUID) (*datastruct.Booking, error) {
 	booking := datastruct.Booking{}
 	result := bq.pgdb.First(&booking, bookingID)
 	if result.Error != nil {

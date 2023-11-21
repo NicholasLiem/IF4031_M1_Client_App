@@ -12,14 +12,15 @@ import (
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/repository"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/utils"
 	http2 "github.com/NicholasLiem/IF4031_M1_Client_App/utils/http"
+	uuid "github.com/satori/go.uuid"
 )
 
 type BookingService interface {
 	CreateBooking(restClient clients.RestClient, issuerID uint, booking dto.CreateBookingDTO) (*dto.IncomingBookingResponseDTO, *utils.HttpError)
-	UpdateBooking(issuerID, bookingID uint, booking dto.UpdateBookingDTO) (*datastruct.Booking, *utils.HttpError)
-	DeleteBooking(issuerID, bookingID uint) (*datastruct.Booking, *utils.HttpError)
-	GetBooking(issuerID, bookingID uint) (*datastruct.Booking, *utils.HttpError)
-	GetBookingsFromCustomerID(issuerID, customerID uint) ([]datastruct.Booking, *utils.HttpError)
+	UpdateBooking(issuerID uint, bookingID uuid.UUID, booking dto.UpdateBookingDTO) (*datastruct.BookingResponse, *utils.HttpError)
+	DeleteBooking(issuerID uint, bookingID uuid.UUID) (*datastruct.Booking, *utils.HttpError)
+	GetBooking(issuerID uint, bookingID uuid.UUID) (*datastruct.BookingResponse, *utils.HttpError)
+	GetBookingsFromCustomerID(issuerID uint, customerID uint) ([]datastruct.BookingResponse, *utils.HttpError)
 }
 
 type bookingService struct {
@@ -156,6 +157,9 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID 
 		}
 	}
 
+	// Commit the transaction
+	tx.Commit()
+
 	updatedBookingData := datastruct.Booking{
 		CustomerID: newBooking.CustomerID,
 		EventID:    newBooking.EventID,
@@ -172,13 +176,10 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID 
 		}
 	}
 
-	// Commit the transaction
-	tx.Commit()
-
 	return &bookingResponse, nil
 }
 
-func (bs *bookingService) UpdateBooking(issuerID uint, bookingID uint, bookingDTO dto.UpdateBookingDTO) (*datastruct.Booking, *utils.HttpError) {
+func (bs *bookingService) UpdateBooking(issuerID uint, bookingID uuid.UUID, bookingDTO dto.UpdateBookingDTO) (*datastruct.BookingResponse, *utils.HttpError) {
 	var userBySession *datastruct.User
 	userBySession, err := bs.dao.NewUserQuery().GetUser(issuerID)
 	if err != nil {
@@ -211,13 +212,29 @@ func (bs *bookingService) UpdateBooking(issuerID uint, bookingID uint, bookingDT
 		Message:    bookingDTO.Message,
 	}
 	updatedBooking, err := bs.dao.NewBookingQuery().UpdateBooking(bookingID, updatedBookingData)
-	return updatedBooking, &utils.HttpError{
-		Message:    err.Error(),
-		StatusCode: http.StatusInternalServerError,
+	if err != nil {
+		return nil, &utils.HttpError{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
+
+	responseData := datastruct.BookingResponse{
+		ID:         updatedBooking.EventID,
+		CustomerID: updatedBooking.CustomerID,
+		InvoiceID:  updatedBooking.InvoiceID,
+		PaymentURL: updatedBooking.PaymentURL,
+		EventID:    updatedBooking.EventID,
+		SeatID:     updatedBooking.SeatID,
+		Email:      updatedBooking.Email,
+		Status:     updatedBooking.Status,
+		Message:    updatedBooking.Message,
+	}
+
+	return &responseData, nil
 }
 
-func (bs *bookingService) DeleteBooking(issuerID, bookingID uint) (*datastruct.Booking, *utils.HttpError) {
+func (bs *bookingService) DeleteBooking(issuerID uint, bookingID uuid.UUID) (*datastruct.Booking, *utils.HttpError) {
 	var userBySession *datastruct.User
 	userBySession, err := bs.dao.NewUserQuery().GetUser(issuerID)
 	if err != nil {
@@ -234,7 +251,7 @@ func (bs *bookingService) DeleteBooking(issuerID, bookingID uint) (*datastruct.B
 		}
 	}
 
-	bookingData, err := bs.dao.NewUserQuery().GetUser(bookingID)
+	bookingData, err := bs.dao.NewBookingQuery().GetBooking(bookingID)
 	if err != nil && bookingData != nil {
 		return nil, &utils.HttpError{
 			Message:    "booking not found",
@@ -242,13 +259,16 @@ func (bs *bookingService) DeleteBooking(issuerID, bookingID uint) (*datastruct.B
 		}
 	}
 	deletedBooking, err := bs.dao.NewBookingQuery().DeleteBooking(bookingID)
-	return deletedBooking, &utils.HttpError{
-		Message:    err.Error(),
-		StatusCode: http.StatusInternalServerError,
+	if err != nil {
+		return nil, &utils.HttpError{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		}
 	}
+	return deletedBooking, nil
 }
 
-func (bs *bookingService) GetBooking(issuerID, bookingID uint) (*datastruct.Booking, *utils.HttpError) {
+func (bs *bookingService) GetBooking(issuerID uint, bookingID uuid.UUID) (*datastruct.BookingResponse, *utils.HttpError) {
 	userBySession, err := bs.dao.NewUserQuery().GetUser(issuerID)
 	if err != nil {
 		return nil, &utils.HttpError{
@@ -274,10 +294,29 @@ func (bs *bookingService) GetBooking(issuerID, bookingID uint) (*datastruct.Book
 		}
 	}
 
-	return booking, nil
+	if booking.CustomerID == userBySession.ID || userBySession.Role == datastruct.ADMIN {
+		responseData := datastruct.BookingResponse{
+			ID:         booking.EventID,
+			CustomerID: booking.CustomerID,
+			InvoiceID:  booking.InvoiceID,
+			PaymentURL: booking.PaymentURL,
+			EventID:    booking.EventID,
+			SeatID:     booking.SeatID,
+			Email:      booking.Email,
+			Status:     booking.Status,
+			Message:    booking.Message,
+		}
+
+		return &responseData, nil
+	} else {
+		return nil, &utils.HttpError{
+			Message:    "unauthorized",
+			StatusCode: http.StatusUnauthorized,
+		}
+	}
 }
 
-func (bs *bookingService) GetBookingsFromCustomerID(issuerID, customerID uint) ([]datastruct.Booking, *utils.HttpError) {
+func (bs *bookingService) GetBookingsFromCustomerID(issuerID uint, customerID uint) ([]datastruct.BookingResponse, *utils.HttpError) {
 	userBySession, err := bs.dao.NewUserQuery().GetUser(issuerID)
 	if err != nil {
 		return nil, &utils.HttpError{
@@ -303,5 +342,23 @@ func (bs *bookingService) GetBookingsFromCustomerID(issuerID, customerID uint) (
 		}
 	}
 
-	return bookings, nil
+	var responseData []datastruct.BookingResponse
+
+	// Map each booking to BookingResponse
+	for _, booking := range bookings {
+		response := datastruct.BookingResponse{
+			ID:         booking.EventID,
+			CustomerID: booking.CustomerID,
+			InvoiceID:  booking.InvoiceID,
+			PaymentURL: booking.PaymentURL,
+			EventID:    booking.EventID,
+			SeatID:     booking.SeatID,
+			Email:      booking.Email,
+			Status:     booking.Status,
+			Message:    booking.Message,
+		}
+		responseData = append(responseData, response)
+	}
+
+	return responseData, nil
 }

@@ -19,7 +19,7 @@ func (m *MicroserviceServer) CreateBooking(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if newBooking.EventID == 0 || newBooking.SeatID == 0 {
+	if newBooking.CustomerID == 0 || newBooking.EventID == 0 || newBooking.SeatID == 0 {
 		response.ErrorResponse(w, http.StatusBadRequest, messages.AllFieldMustBeFilled)
 		return
 	}
@@ -55,7 +55,7 @@ func (m *MicroserviceServer) CreateBooking(w http.ResponseWriter, r *http.Reques
 func (m *MicroserviceServer) GetBooking(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	bookingID := params["booking_id"]
-	requestedBookingID, err := utils.VerifyId(bookingID)
+	requestedBookingID, err := utils.VerifyUUID(bookingID)
 	if err != nil {
 		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
@@ -92,7 +92,7 @@ func (m *MicroserviceServer) GetBooking(w http.ResponseWriter, r *http.Request) 
 func (m *MicroserviceServer) UpdateBooking(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	bookingID := params["booking_id"]
-	requestedBookingID, err := utils.VerifyId(bookingID)
+	requestedBookingID, err := utils.VerifyUUID(bookingID)
 	if err != nil {
 		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
@@ -123,20 +123,20 @@ func (m *MicroserviceServer) UpdateBooking(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	_, err = m.bookingService.UpdateBooking(issuerId, requestedBookingID, updatedBooking)
+	updatedBookingData, err := m.bookingService.UpdateBooking(issuerId, requestedBookingID, updatedBooking)
 	if err != nil {
 		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
 
-	response.SuccessResponse(w, http.StatusOK, messages.SuccessfulDataUpdate, nil)
+	response.SuccessResponse(w, http.StatusOK, messages.SuccessfulDataUpdate, updatedBookingData)
 	return
 }
 
 func (m *MicroserviceServer) DeleteBooking(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	bookingID := params["booking_id"]
-	requestedBookingID, err := utils.VerifyId(bookingID)
+	requestedBookingID, err := utils.VerifyUUID(bookingID)
 	if err != nil {
 		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
