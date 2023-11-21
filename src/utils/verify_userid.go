@@ -3,6 +3,8 @@ package utils
 import (
 	"net/http"
 	"strconv"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 func VerifyId(UserID string) (uint, *HttpError) {
@@ -14,4 +16,15 @@ func VerifyId(UserID string) (uint, *HttpError) {
 		}
 	}
 	return uint(userID), nil
+}
+
+func VerifyUUID(UserID string) (uuid.UUID, *HttpError) {
+	u, err := uuid.FromString(UserID)
+	if err != nil {
+		return uuid.UUID{}, &HttpError{
+			Message:    "invalid UUID format",
+			StatusCode: http.StatusBadRequest,
+		}
+	}
+	return u, nil
 }

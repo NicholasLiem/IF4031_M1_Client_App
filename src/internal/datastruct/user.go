@@ -13,11 +13,11 @@ type User struct {
 }
 
 type UserResponse struct {
-	ID        uint
-	FirstName string
-	LastName  string
-	Email     string
-	Role      Role
+	ID        uint   `json:"id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Role      Role   `json:"role"`
 }
 
 type Role string

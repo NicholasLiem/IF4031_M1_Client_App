@@ -1,9 +1,21 @@
 package datastruct
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	uuid "github.com/satori/go.uuid"
+	"gorm.io/gorm"
+)
+
+type CustomModel struct {
+	ID        uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
+}
 
 type Booking struct {
-	gorm.Model
+	CustomModel
 	CustomerID uint          `gorm:"customer_id" json:"customer_id,omitempty"`
 	InvoiceID  uint          `gorm:"invoice_id" json:"invoice_id,omitempty"`
 	PaymentURL string        `gorm:"payment_url" json:"payment_url,omitempty"`
@@ -16,11 +28,23 @@ type Booking struct {
 }
 
 type BookingRequestDTO struct {
-	BookingID  uint   `json:"booking_id,omitempty"`
-	CustomerID uint   `json:"customer_id,omitempty"`
-	EventID    uint   `json:"event_id,omitempty"`
-	SeatID     uint   `json:"seat_id,omitempty"`
-	Email      string `json:"email,omitempty"`
+	BookingID  uuid.UUID `json:"booking_id,omitempty"`
+	CustomerID uint      `json:"customer_id,omitempty"`
+	EventID    uint      `json:"event_id,omitempty"`
+	SeatID     uint      `json:"seat_id,omitempty"`
+	Email      string    `json:"email,omitempty"`
+}
+
+type BookingResponse struct {
+	ID         uint          `json:"id"`
+	CustomerID uint          `json:"customer_id"`
+	InvoiceID  uint          `gorm:"invoice_id" json:"invoice_id,omitempty"`
+	PaymentURL string        `gorm:"payment_url" json:"payment_url,omitempty"`
+	EventID    uint          `json:"event_id,omitempty"`
+	SeatID     uint          `json:"seat_id,omitempty"`
+	Email      string        `gorm:"column:email" json:"email,omitempty"`
+	Status     BookingStatus `gorm:"column:status" json:"status,omitempty"`
+	Message    string        `gorm:"column:message" json:"message,omitempty"`
 }
 
 type BookingStatus string
