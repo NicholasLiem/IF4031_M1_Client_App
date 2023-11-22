@@ -3,9 +3,11 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+	"os"
+
 	response "github.com/NicholasLiem/IF4031_M1_Client_App/utils/http"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/utils/jwt"
-	"net/http"
 )
 
 func Middleware(next http.Handler) http.Handler {
@@ -32,5 +34,18 @@ func Middleware(next http.Handler) http.Handler {
 
 		ctx := context.WithValue(r.Context(), "jwtClaims", claimsJSON)
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func AuthenticateApiKey(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+		ticketAuthHeader := "Bearer " + os.Getenv("TICKET_API_KEY")
+		if authHeader != "" && (authHeader == ticketAuthHeader) {
+			next.ServeHTTP(w, r)
+		} else {
+			response.ErrorResponse(w, http.StatusUnauthorized, "Unauthorized access")
+			return
+		}
 	})
 }

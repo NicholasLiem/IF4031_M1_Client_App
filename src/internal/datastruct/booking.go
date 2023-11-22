@@ -17,7 +17,7 @@ type CustomModel struct {
 type Booking struct {
 	CustomModel
 	CustomerID uint          `gorm:"customer_id" json:"customer_id,omitempty"`
-	InvoiceID  uint          `gorm:"invoice_id" json:"invoice_id,omitempty"`
+	InvoiceID  uuid.UUID     `gorm:"invoice_id" json:"invoice_id,omitempty"`
 	PaymentURL string        `gorm:"payment_url" json:"payment_url,omitempty"`
 	EventID    uint          `gorm:"column:event_id" json:"event_id,omitempty"`
 	SeatID     uint          `gorm:"column:seat_id" json:"seat_id,omitempty"`
@@ -38,7 +38,7 @@ type BookingRequestDTO struct {
 type BookingResponse struct {
 	ID         uuid.UUID     `json:"id"`
 	CustomerID uint          `json:"customer_id"`
-	InvoiceID  uint          `gorm:"invoice_id" json:"invoice_id,omitempty"`
+	InvoiceID  uuid.UUID     `gorm:"invoice_id" json:"invoice_id,omitempty"`
 	PaymentURL string        `gorm:"payment_url" json:"payment_url,omitempty"`
 	EventID    uint          `json:"event_id,omitempty"`
 	SeatID     uint          `json:"seat_id,omitempty"`

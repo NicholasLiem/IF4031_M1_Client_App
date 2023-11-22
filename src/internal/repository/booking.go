@@ -12,6 +12,8 @@ type BookingQuery interface {
 	DeleteBooking(bookingID uuid.UUID) (*datastruct.Booking, error)
 	GetBooking(bookingID uuid.UUID) (*datastruct.Booking, error)
 	GetBookingsFromCustomerID(customerID uint) ([]datastruct.Booking, error)
+
+	UpdateStatusBooking(bookingID uuid.UUID, booking datastruct.Booking) (*datastruct.Booking, error)
 }
 
 type bookingQuery struct {
@@ -42,6 +44,26 @@ func (bq *bookingQuery) UpdateBooking(bookingID uuid.UUID, booking datastruct.Bo
 	existingBooking.EventID = booking.EventID
 	existingBooking.SeatID = booking.SeatID
 	existingBooking.Status = booking.Status
+
+	result = bq.pgdb.Save(&existingBooking)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &existingBooking, nil
+}
+
+func (bq *bookingQuery) UpdateStatusBooking(bookingID uuid.UUID, booking datastruct.Booking) (*datastruct.Booking, error) {
+	existingBooking := datastruct.Booking{}
+	result := bq.pgdb.First(&existingBooking, bookingID)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	existingBooking.InvoiceID = booking.InvoiceID
+	existingBooking.PaymentURL = booking.PaymentURL
+	existingBooking.Status = booking.Status
+	existingBooking.Message = booking.Message
 
 	result = bq.pgdb.Save(&existingBooking)
 	if result.Error != nil {
