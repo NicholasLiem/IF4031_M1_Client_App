@@ -36,7 +36,7 @@ type BookingRequestDTO struct {
 }
 
 type BookingResponse struct {
-	ID         uint          `json:"id"`
+	ID         uuid.UUID     `json:"id"`
 	CustomerID uint          `json:"customer_id"`
 	InvoiceID  uint          `gorm:"invoice_id" json:"invoice_id,omitempty"`
 	PaymentURL string        `gorm:"payment_url" json:"payment_url,omitempty"`
