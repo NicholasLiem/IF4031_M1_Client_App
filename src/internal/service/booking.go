@@ -220,7 +220,7 @@ func (bs *bookingService) UpdateBooking(issuerID uint, bookingID uuid.UUID, book
 	}
 
 	responseData := datastruct.BookingResponse{
-		ID:         updatedBooking.EventID,
+		ID:         updatedBooking.ID,
 		CustomerID: updatedBooking.CustomerID,
 		InvoiceID:  updatedBooking.InvoiceID,
 		PaymentURL: updatedBooking.PaymentURL,
@@ -296,7 +296,7 @@ func (bs *bookingService) GetBooking(issuerID uint, bookingID uuid.UUID) (*datas
 
 	if booking.CustomerID == userBySession.ID || userBySession.Role == datastruct.ADMIN {
 		responseData := datastruct.BookingResponse{
-			ID:         booking.EventID,
+			ID:         booking.ID,
 			CustomerID: booking.CustomerID,
 			InvoiceID:  booking.InvoiceID,
 			PaymentURL: booking.PaymentURL,
@@ -347,7 +347,7 @@ func (bs *bookingService) GetBookingsFromCustomerID(issuerID uint, customerID ui
 	// Map each booking to BookingResponse
 	for _, booking := range bookings {
 		response := datastruct.BookingResponse{
-			ID:         booking.EventID,
+			ID:         booking.ID,
 			CustomerID: booking.CustomerID,
 			InvoiceID:  booking.InvoiceID,
 			PaymentURL: booking.PaymentURL,
