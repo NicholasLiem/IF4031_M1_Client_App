@@ -27,7 +27,7 @@ type IncomingBookingResponseDTO struct {
 	SeatID     uint                     `json:"seat_id,omitempty"`
 	Email      string                   `json:"email,omitempty"`
 	CustomerID uint                     `json:"customer_id,omitempty"`
-	PaymentURL string                   `json:"payment_uRL,omitempty"`
+	PaymentURL string                   `json:"payment_url,omitempty"`
 	Status     datastruct.BookingStatus `json:"status,omitempty"`
 	Message    string                   `json:"message,omitempty"`
 }
