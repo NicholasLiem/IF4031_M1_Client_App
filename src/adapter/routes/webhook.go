@@ -5,7 +5,6 @@ import (
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/app"
 )
 
-// TODO: Implement this please
 func WebhookRoutes(server app.MicroserviceServer) structs.RoutePrefix {
 	return structs.RoutePrefix{
 		Prefix: "/v1/webhook",
@@ -13,8 +12,8 @@ func WebhookRoutes(server app.MicroserviceServer) structs.RoutePrefix {
 			{
 				"Update booking if failed or success",
 				"PUT",
-				"/",
-				server.CreateBooking,
+				"",
+				server.WebhookBookingHandler,
 				true,
 			},
 		},

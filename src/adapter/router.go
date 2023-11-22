@@ -1,12 +1,13 @@
 package adapter
 
 import (
+	"net/http"
+
 	"github.com/NicholasLiem/IF4031_M1_Client_App/adapter/middleware"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/adapter/routes"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/adapter/structs"
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/app"
 	"github.com/gorilla/mux"
-	"net/http"
 )
 
 func NewRouter(server app.MicroserviceServer) *mux.Router {
@@ -32,7 +33,11 @@ func NewRouter(server app.MicroserviceServer) *mux.Router {
 			handler = subRoute.HandlerFunc
 
 			if subRoute.Protected {
-				handler = middleware.Middleware(subRoute.HandlerFunc) // use middleware
+				if subRoute.Name == "Update booking if failed or success" { // webhooks
+					handler = middleware.AuthenticateApiKey(subRoute.HandlerFunc)
+				} else {
+					handler = middleware.Middleware(subRoute.HandlerFunc) // use middleware
+				}
 			}
 
 			//register the route

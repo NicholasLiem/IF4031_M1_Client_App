@@ -21,6 +21,8 @@ type BookingService interface {
 	DeleteBooking(issuerID uint, bookingID uuid.UUID) (*datastruct.Booking, *utils.HttpError)
 	GetBooking(issuerID uint, bookingID uuid.UUID) (*datastruct.BookingResponse, *utils.HttpError)
 	GetBookingsFromCustomerID(issuerID uint, customerID uint) ([]datastruct.BookingResponse, *utils.HttpError)
+
+	UpdateStatusBooking(bookingID uuid.UUID, invoice dto.IncomingInvoicePayload) (*datastruct.BookingResponse, *utils.HttpError)
 }
 
 type bookingService struct {
@@ -212,6 +214,52 @@ func (bs *bookingService) UpdateBooking(issuerID uint, bookingID uuid.UUID, book
 		Message:    bookingDTO.Message,
 	}
 	updatedBooking, err := bs.dao.NewBookingQuery().UpdateBooking(bookingID, updatedBookingData)
+	if err != nil {
+		return nil, &utils.HttpError{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		}
+	}
+
+	responseData := datastruct.BookingResponse{
+		ID:         updatedBooking.ID,
+		CustomerID: updatedBooking.CustomerID,
+		InvoiceID:  updatedBooking.InvoiceID,
+		PaymentURL: updatedBooking.PaymentURL,
+		EventID:    updatedBooking.EventID,
+		SeatID:     updatedBooking.SeatID,
+		Email:      updatedBooking.Email,
+		Status:     updatedBooking.Status,
+		Message:    updatedBooking.Message,
+	}
+
+	return &responseData, nil
+}
+
+func (bs *bookingService) UpdateStatusBooking(bookingID uuid.UUID, invoice dto.IncomingInvoicePayload) (*datastruct.BookingResponse, *utils.HttpError) {
+	bookingData, err := bs.dao.NewBookingQuery().GetBooking(bookingID)
+	if err != nil && bookingData != nil {
+		return nil, &utils.HttpError{
+			Message:    "booking not found",
+			StatusCode: http.StatusNotFound,
+		}
+	}
+
+	var status datastruct.BookingStatus
+	if invoice.PaymentStatus == dto.SUCCESS {
+		status = datastruct.BookingSuccess
+	} else {
+		status = datastruct.BookingFailed
+	}
+
+	updatedBookingData := datastruct.Booking{
+		InvoiceID:  invoice.InvoiceID,
+		PaymentURL: invoice.PaymentURL,
+		Status:     status,
+		Message:    invoice.Message,
+	}
+
+	updatedBooking, err := bs.dao.NewBookingQuery().UpdateStatusBooking(bookingID, updatedBookingData)
 	if err != nil {
 		return nil, &utils.HttpError{
 			Message:    err.Error(),
