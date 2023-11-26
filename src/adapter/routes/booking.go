@@ -17,6 +17,13 @@ func BookingRoutes(server app.MicroserviceServer) structs.RoutePrefix {
 				true,
 			},
 			{
+				"Cancel a booking",
+				"POST",
+				"/cancel/{booking_id}",
+				server.CancelBooking,
+				true,
+			},
+			{
 				"Update a booking",
 				"PUT",
 				"/{booking_id}",

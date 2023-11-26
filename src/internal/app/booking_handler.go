@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/NicholasLiem/IF4031_M1_Client_App/internal/dto"
@@ -18,12 +19,10 @@ func (m *MicroserviceServer) CreateBooking(w http.ResponseWriter, r *http.Reques
 		response.ErrorResponse(w, http.StatusBadRequest, messages.InvalidRequestData)
 		return
 	}
-
 	if newBooking.CustomerID == 0 || newBooking.EventID == 0 || newBooking.SeatID == 0 {
 		response.ErrorResponse(w, http.StatusBadRequest, messages.AllFieldMustBeFilled)
 		return
 	}
-
 	/**
 	Parsing Session Data from Context
 	*/
@@ -32,22 +31,20 @@ func (m *MicroserviceServer) CreateBooking(w http.ResponseWriter, r *http.Reques
 		response.ErrorResponse(w, httpError.StatusCode, httpError.Message)
 		return
 	}
-
 	/**
 	Took the issuer identifier
 	*/
+
 	issuerId, httpError := utils.VerifyId(sessionUser.UserID)
 	if httpError != nil {
 		response.ErrorResponse(w, httpError.StatusCode, httpError.Message)
 		return
 	}
-
 	bookingData, httpError := m.bookingService.CreateBooking(m.restClient, issuerId, newBooking)
 	if httpError != nil {
 		response.ErrorResponse(w, httpError.StatusCode, httpError.Message)
 		return
 	}
-
 	response.SuccessResponse(w, http.StatusOK, messages.SuccessfulDataCreation, bookingData)
 	return
 }
@@ -130,6 +127,39 @@ func (m *MicroserviceServer) UpdateBooking(w http.ResponseWriter, r *http.Reques
 	}
 
 	response.SuccessResponse(w, http.StatusOK, messages.SuccessfulDataUpdate, updatedBookingData)
+	return
+}
+
+func (m *MicroserviceServer) CancelBooking(w http.ResponseWriter, r *http.Request){
+	params := mux.Vars(r)
+	bookingID := params["booking_id"]
+	requestedBookingID, err := utils.VerifyUUID(bookingID)
+	if err != nil {
+		response.ErrorResponse(w, err.StatusCode, err.Message)
+		return
+	}
+	sessionUser, err := utils.ParseSessionUserFromContext(r.Context())
+	if err != nil {
+		response.ErrorResponse(w, err.StatusCode, err.Message)
+		return
+	}
+	issuerId, err := utils.VerifyId(sessionUser.UserID)
+	if err != nil {
+		response.ErrorResponse(w, err.StatusCode, err.Message)
+		return
+	}
+	bookingData, err := m.bookingService.GetBooking(issuerId, requestedBookingID)
+	if err != nil {
+		response.ErrorResponse(w, err.StatusCode, err.Message)
+		return
+	}
+	canceledBooking, httpError := m.bookingService.CancelBooking(m.restClient, issuerId, bookingData.ID, bookingData.SeatID)	
+	if httpError != nil{
+		fmt.Println(httpError)
+		return;
+	}
+
+	response.SuccessResponse(w,http.StatusOK,"Your booking has been cancelled!",canceledBooking.BookingID)
 	return
 }
 

@@ -35,6 +35,16 @@ type BookingRequestDTO struct {
 	Email      string    `json:"email,omitempty"`
 }
 
+type CancelBookingRequest struct{
+	BookingID  uuid.UUID `json:"booking_id,omitempty"`
+	SeatID     uint      `json:"seat_id,omitempty"`
+}
+
+type CancelBookingResponse struct{
+	BookingID	uuid.UUID	`json:"booking_id,omitempty"`
+	Message    string        `gorm:"column:message" json:"message,omitempty"`
+}
+
 type BookingResponse struct {
 	ID         uuid.UUID     `json:"id"`
 	CustomerID uint          `json:"customer_id"`

@@ -20,6 +20,15 @@ type UpdateBookingDTO struct {
 	Message    string `json:"message"`
 }
 
+type CancelBookingDTO struct{
+	BookingID	uuid.UUID	`json:"booking_id,omitempty"`
+	Message    string       `json:"message,omitempty"`
+}
+
+type CancelBookingRequest struct{
+	
+}
+
 type IncomingBookingResponseDTO struct {
 	InvoiceID  string                   `json:"invoice_id,omitempty"`
 	BookingID  uuid.UUID                `json:"booking_id,omitempty"`
@@ -28,6 +37,12 @@ type IncomingBookingResponseDTO struct {
 	Email      string                   `json:"email,omitempty"`
 	CustomerID uint                     `json:"customer_id,omitempty"`
 	PaymentURL string                   `json:"payment_url,omitempty"`
+	Status     datastruct.BookingStatus `json:"status,omitempty"`
+	Message    string                   `json:"message,omitempty"`
+}
+
+type CancelBookingResponseDTO struct{
+	BookingID  uuid.UUID                `json:"booking_id,omitempty"`
 	Status     datastruct.BookingStatus `json:"status,omitempty"`
 	Message    string                   `json:"message,omitempty"`
 }

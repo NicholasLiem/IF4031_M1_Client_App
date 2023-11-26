@@ -9,10 +9,10 @@ import (
 type BookingQuery interface {
 	CreateBooking(tx *gorm.DB, booking datastruct.Booking) (*datastruct.Booking, error)
 	UpdateBooking(bookingID uuid.UUID, booking datastruct.Booking) (*datastruct.Booking, error)
+	CancelBooking(bookingID uuid.UUID)(*datastruct.Booking, error)
 	DeleteBooking(bookingID uuid.UUID) (*datastruct.Booking, error)
 	GetBooking(bookingID uuid.UUID) (*datastruct.Booking, error)
 	GetBookingsFromCustomerID(customerID uint) ([]datastruct.Booking, error)
-
 	UpdateStatusBooking(bookingID uuid.UUID, booking datastruct.Booking) (*datastruct.Booking, error)
 }
 
@@ -70,6 +70,20 @@ func (bq *bookingQuery) UpdateStatusBooking(bookingID uuid.UUID, booking datastr
 		return nil, result.Error
 	}
 
+	return &existingBooking, nil
+}
+
+func (bq * bookingQuery) CancelBooking(bookingID uuid.UUID)(*datastruct.Booking, error){
+	existingBooking := datastruct.Booking{}
+	result := bq.pgdb.First(&existingBooking, bookingID)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	existingBooking.Status = datastruct.BookingFailed
+	result = bq.pgdb.Save(&existingBooking)
+	if result.Error != nil {
+		return nil, result.Error
+	}
 	return &existingBooking, nil
 }
 

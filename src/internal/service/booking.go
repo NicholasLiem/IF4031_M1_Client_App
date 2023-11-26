@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -21,7 +22,7 @@ type BookingService interface {
 	DeleteBooking(issuerID uint, bookingID uuid.UUID) (*datastruct.Booking, *utils.HttpError)
 	GetBooking(issuerID uint, bookingID uuid.UUID) (*datastruct.BookingResponse, *utils.HttpError)
 	GetBookingsFromCustomerID(issuerID uint, customerID uint) ([]datastruct.BookingResponse, *utils.HttpError)
-
+	CancelBooking(restClient clients.RestClient, issuerID uint, bookingID uuid.UUID, seatID uint)(*datastruct.CancelBookingResponse, *utils.HttpError)
 	UpdateStatusBooking(bookingID uuid.UUID, invoice dto.IncomingInvoicePayload) (*datastruct.BookingResponse, *utils.HttpError)
 }
 
@@ -76,6 +77,7 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID 
 		SeatID:     bookingDTO.SeatID,
 		Email:      customer.Email,
 	})
+
 	if err != nil {
 		tx.Rollback()
 		return nil, &utils.HttpError{
@@ -91,7 +93,6 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID 
 		SeatID:     bookingDTO.SeatID,
 		Email:      newBooking.Email,
 	}
-
 	requestBody, err := json.Marshal(booking)
 	if err != nil {
 		return nil, &utils.HttpError{
@@ -128,7 +129,6 @@ func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID 
 		}
 
 		responseBody := string(bodyBytes)
-
 		var response http2.Response
 		if err := json.Unmarshal([]byte(responseBody), &response); err != nil {
 			return nil, &utils.HttpError{
@@ -235,7 +235,107 @@ func (bs *bookingService) UpdateBooking(issuerID uint, bookingID uuid.UUID, book
 
 	return &responseData, nil
 }
+func (bs *bookingService) CancelBooking(restClient clients.RestClient, issuerID uint, bookingID uuid.UUID, seatID uint)(*datastruct.CancelBookingResponse, *utils.HttpError){
+	tx := bs.dao.GetDB().Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
+	userBySession, err := bs.dao.NewUserQuery().GetUser(issuerID)
+	if err != nil {
+		return nil, &utils.HttpError{
+			Message:    "unauthorized",
+			StatusCode: http.StatusUnauthorized,
+		}
+	}
+
+	if err != nil {
+		return nil, &utils.HttpError{
+			Message:    "unauthorized",
+			StatusCode: http.StatusUnauthorized,
+		}
+	}
+
+	if userBySession.Role != datastruct.ADMIN {
+		return nil, &utils.HttpError{
+			Message:    "unauthorized",
+			StatusCode: http.StatusUnauthorized,
+		}
+	}
+	canceledBooking, err := bs.dao.NewBookingQuery().CancelBooking(bookingID)
+	if err != nil{
+		fmt.Println("Error setelah query booking")
+		tx.Rollback()
+		return nil, &utils.HttpError{
+			Message:  err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		}
+	}
+
+	booking := datastruct.CancelBookingRequest{
+		BookingID:  bookingID,
+		SeatID: canceledBooking.SeatID,
+	}
+	requestBody, err := json.Marshal(booking)
+	if err != nil {
+		return nil, &utils.HttpError{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		}
+	}
+	externalAPIPath := "/book/cancel"
+	response, err := restClient.Post(externalAPIPath,requestBody)
+	if err != nil {
+		return nil, &utils.HttpError{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		}
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			tx.Rollback()
+		}
+	}(response.Body)
+
+	if response.StatusCode != http.StatusOK {
+		// Kalau ternyata gagal cancel invoicenya, semua transaksi ke rollback
+		tx.Rollback()
+
+		// Read the response body to get the message
+		bodyBytes, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return nil, &utils.HttpError{
+				Message:    "Failed to read response body",
+				StatusCode: http.StatusInternalServerError,
+			}
+		}
+
+		responseBody := string(bodyBytes)
+		var response http2.Response
+		if err := json.Unmarshal([]byte(responseBody), &response); err != nil {
+			return nil, &utils.HttpError{
+				Message:    err.Error(),
+				StatusCode: http.StatusInternalServerError,
+			}
+		}
+
+		return nil, &utils.HttpError{
+			Message:    "External API request failed with message: " + response.Message,
+			StatusCode: response.StatusCode,
+		}
+	}
+
+	// Commit the transaction
+	tx.Commit()
+	responseData := datastruct.CancelBookingResponse{
+		BookingID: bookingID,
+		Message: "Succesfully cancelled booking",
+	}
+	return &responseData, nil
+}
 func (bs *bookingService) UpdateStatusBooking(bookingID uuid.UUID, invoice dto.IncomingInvoicePayload) (*datastruct.BookingResponse, *utils.HttpError) {
 	bookingData, err := bs.dao.NewBookingQuery().GetBooking(bookingID)
 	if err != nil && bookingData != nil {
