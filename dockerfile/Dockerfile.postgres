@@ -1,3 +1,5 @@
 FROM postgres:16-alpine
+COPY ./script/init.sql /docker-entrypoint-initdb.d/
+
 EXPOSE 5432
 CMD ["postgres"]
