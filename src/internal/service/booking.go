@@ -17,6 +17,7 @@ import (
 )
 
 type BookingService interface {
+	GetAllBooking(issuerID uint)([]datastruct.BookingResponse,*utils.HttpError)
 	CreateBooking(restClient clients.RestClient, issuerID uint, booking dto.CreateBookingDTO) (*dto.IncomingBookingResponseDTO, *utils.HttpError)
 	UpdateBooking(issuerID uint, bookingID uuid.UUID, booking dto.UpdateBookingDTO) (*datastruct.BookingResponse, *utils.HttpError)
 	DeleteBooking(issuerID uint, bookingID uuid.UUID) (*datastruct.Booking, *utils.HttpError)
@@ -32,6 +33,46 @@ type bookingService struct {
 
 func NewBookingService(dao repository.DAO) BookingService {
 	return &bookingService{dao: dao}
+}
+
+func (bs *bookingService) GetAllBooking(issuerID uint)([]datastruct.BookingResponse,*utils.HttpError){
+	userBySession, err := bs.dao.NewUserQuery().GetUser(issuerID)
+	if err != nil {
+		return nil, &utils.HttpError{
+			Message:    "unauthorized",
+			StatusCode: http.StatusUnauthorized,
+		}
+	}
+
+	if userBySession.Role != datastruct.ADMIN {
+		return nil, &utils.HttpError{
+			Message:    "unauthorized",
+			StatusCode: http.StatusUnauthorized,
+		}
+	}
+	bookings, err := bs.dao.NewBookingQuery().GetAllBooking()
+	if err != nil{
+		return nil, &utils.HttpError{
+			Message: err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		}
+	}
+	var responseData []datastruct.BookingResponse
+	for _,booking:= range bookings{
+		response := datastruct.BookingResponse{
+			ID: booking.ID,
+			CustomerID: booking.CustomerID,
+			InvoiceID: booking.InvoiceID,
+			PaymentURL: booking.PaymentURL,
+			EventID:    booking.EventID,
+			SeatID:     booking.SeatID,
+			Email:      booking.Email,
+			Status:     booking.Status,
+			Message:    booking.Message,
+		}
+		responseData = append(responseData, response)
+	}
+	return responseData,nil
 }
 
 func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID uint, bookingDTO dto.CreateBookingDTO) (*dto.IncomingBookingResponseDTO, *utils.HttpError) {

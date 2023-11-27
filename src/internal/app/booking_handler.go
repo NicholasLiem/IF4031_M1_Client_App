@@ -12,6 +12,25 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func (m *MicroserviceServer) GetAllBooking(w http.ResponseWriter, r *http.Request){
+	sessionUser, err := utils.ParseSessionUserFromContext(r.Context())
+	if err != nil {
+		response.ErrorResponse(w, err.StatusCode, err.Message)
+		return
+	}
+	issuerID, err := utils.VerifyId(sessionUser.UserID)
+	if err != nil {
+		response.ErrorResponse(w, err.StatusCode, err.Message)
+		return
+	}
+	bookingsData, err := m.bookingService.GetAllBooking(issuerID)
+	if err != nil {
+		response.ErrorResponse(w, err.StatusCode, err.Message)
+		return
+	}
+	response.SuccessResponse(w,http.StatusOK,messages.SuccessfulDataObtain,bookingsData)
+}
+
 func (m *MicroserviceServer) CreateBooking(w http.ResponseWriter, r *http.Request) {
 	var newBooking dto.CreateBookingDTO
 	decodeError := json.NewDecoder(r.Body).Decode(&newBooking)

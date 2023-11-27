@@ -10,6 +10,13 @@ func BookingRoutes(server app.MicroserviceServer) structs.RoutePrefix {
 		Prefix: "/v1/booking",
 		SubRoutes: []structs.Route{
 			{
+				"Get all bookings",
+				"GET",
+				"",
+				server.GetAllBooking,
+				true,
+			},
+			{
 				"Create a new booking",
 				"POST",
 				"",
