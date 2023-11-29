@@ -29,7 +29,7 @@ https://crimson-meadow-438973.postman.co/workspace/PAT~5e4b20a9-a21e-48b8-8eef-b
 ## How to Use
 1. Clone or fork this repository
 ```sh
-https://github.com/NicholasLiem/IF4031_M1_Ticket_App
+https://github.com/NicholasLiem/IF4031_M1_Client_App
 ```
 2. Initialize .env file using the template given (.env.example and docker.env.example)
 ```sh
