@@ -12,7 +12,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func (m *MicroserviceServer) GetAllBooking(w http.ResponseWriter, r *http.Request){
+func (m *MicroserviceServer) GetAllBooking(w http.ResponseWriter, r *http.Request) {
 	sessionUser, err := utils.ParseSessionUserFromContext(r.Context())
 	if err != nil {
 		response.ErrorResponse(w, err.StatusCode, err.Message)
@@ -28,7 +28,7 @@ func (m *MicroserviceServer) GetAllBooking(w http.ResponseWriter, r *http.Reques
 		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
-	response.SuccessResponse(w,http.StatusOK,messages.SuccessfulDataObtain,bookingsData)
+	response.SuccessResponse(w, http.StatusOK, messages.SuccessfulDataObtain, bookingsData)
 }
 
 func (m *MicroserviceServer) CreateBooking(w http.ResponseWriter, r *http.Request) {
@@ -149,7 +149,7 @@ func (m *MicroserviceServer) UpdateBooking(w http.ResponseWriter, r *http.Reques
 	return
 }
 
-func (m *MicroserviceServer) CancelBooking(w http.ResponseWriter, r *http.Request){
+func (m *MicroserviceServer) CancelBooking(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	bookingID := params["booking_id"]
 	requestedBookingID, err := utils.VerifyUUID(bookingID)
@@ -172,13 +172,14 @@ func (m *MicroserviceServer) CancelBooking(w http.ResponseWriter, r *http.Reques
 		response.ErrorResponse(w, err.StatusCode, err.Message)
 		return
 	}
-	canceledBooking, httpError := m.bookingService.CancelBooking(m.restClient, issuerId, bookingData.ID, bookingData.SeatID)	
-	if httpError != nil{
+	canceledBooking, httpError := m.bookingService.CancelBooking(m.restClient, issuerId, bookingData.ID, bookingData.SeatID)
+	if httpError != nil {
 		fmt.Println(httpError)
-		return;
+		response.ErrorResponse(w, httpError.StatusCode, httpError.Message)
+		return
 	}
 
-	response.SuccessResponse(w,http.StatusOK,"Your booking has been cancelled!",canceledBooking.BookingID)
+	response.SuccessResponse(w, http.StatusOK, "Your booking has been cancelled!", canceledBooking.BookingID)
 	return
 }
 

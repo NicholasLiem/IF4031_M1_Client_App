@@ -17,13 +17,13 @@ import (
 )
 
 type BookingService interface {
-	GetAllBooking(issuerID uint)([]datastruct.BookingResponse,*utils.HttpError)
+	GetAllBooking(issuerID uint) ([]datastruct.BookingResponse, *utils.HttpError)
 	CreateBooking(restClient clients.RestClient, issuerID uint, booking dto.CreateBookingDTO) (*dto.IncomingBookingResponseDTO, *utils.HttpError)
 	UpdateBooking(issuerID uint, bookingID uuid.UUID, booking dto.UpdateBookingDTO) (*datastruct.BookingResponse, *utils.HttpError)
 	DeleteBooking(issuerID uint, bookingID uuid.UUID) (*datastruct.Booking, *utils.HttpError)
 	GetBooking(issuerID uint, bookingID uuid.UUID) (*datastruct.BookingResponse, *utils.HttpError)
 	GetBookingsFromCustomerID(issuerID uint, customerID uint) ([]datastruct.BookingResponse, *utils.HttpError)
-	CancelBooking(restClient clients.RestClient, issuerID uint, bookingID uuid.UUID, seatID uint)(*datastruct.CancelBookingResponse, *utils.HttpError)
+	CancelBooking(restClient clients.RestClient, issuerID uint, bookingID uuid.UUID, seatID uint) (*datastruct.CancelBookingResponse, *utils.HttpError)
 	UpdateStatusBooking(bookingID uuid.UUID, invoice dto.IncomingInvoicePayload) (*datastruct.BookingResponse, *utils.HttpError)
 }
 
@@ -35,7 +35,7 @@ func NewBookingService(dao repository.DAO) BookingService {
 	return &bookingService{dao: dao}
 }
 
-func (bs *bookingService) GetAllBooking(issuerID uint)([]datastruct.BookingResponse,*utils.HttpError){
+func (bs *bookingService) GetAllBooking(issuerID uint) ([]datastruct.BookingResponse, *utils.HttpError) {
 	userBySession, err := bs.dao.NewUserQuery().GetUser(issuerID)
 	if err != nil {
 		return nil, &utils.HttpError{
@@ -51,18 +51,18 @@ func (bs *bookingService) GetAllBooking(issuerID uint)([]datastruct.BookingRespo
 		}
 	}
 	bookings, err := bs.dao.NewBookingQuery().GetAllBooking()
-	if err != nil{
+	if err != nil {
 		return nil, &utils.HttpError{
-			Message: err.Error(),
+			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
 	}
 	var responseData []datastruct.BookingResponse
-	for _,booking:= range bookings{
+	for _, booking := range bookings {
 		response := datastruct.BookingResponse{
-			ID: booking.ID,
+			ID:         booking.ID,
 			CustomerID: booking.CustomerID,
-			InvoiceID: booking.InvoiceID,
+			InvoiceID:  booking.InvoiceID,
 			PaymentURL: booking.PaymentURL,
 			EventID:    booking.EventID,
 			SeatID:     booking.SeatID,
@@ -72,7 +72,7 @@ func (bs *bookingService) GetAllBooking(issuerID uint)([]datastruct.BookingRespo
 		}
 		responseData = append(responseData, response)
 	}
-	return responseData,nil
+	return responseData, nil
 }
 
 func (bs *bookingService) CreateBooking(restClient clients.RestClient, issuerID uint, bookingDTO dto.CreateBookingDTO) (*dto.IncomingBookingResponseDTO, *utils.HttpError) {
@@ -276,13 +276,21 @@ func (bs *bookingService) UpdateBooking(issuerID uint, bookingID uuid.UUID, book
 
 	return &responseData, nil
 }
-func (bs *bookingService) CancelBooking(restClient clients.RestClient, issuerID uint, bookingID uuid.UUID, seatID uint)(*datastruct.CancelBookingResponse, *utils.HttpError){
+func (bs *bookingService) CancelBooking(restClient clients.RestClient, issuerID uint, bookingID uuid.UUID, seatID uint) (*datastruct.CancelBookingResponse, *utils.HttpError) {
 	tx := bs.dao.GetDB().Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
 		}
 	}()
+
+	bookingData, err := bs.dao.NewBookingQuery().GetBooking(bookingID)
+	if err != nil {
+		return nil, &utils.HttpError{
+			Message:    "booking not found",
+			StatusCode: http.StatusNotFound,
+		}
+	}
 
 	userBySession, err := bs.dao.NewUserQuery().GetUser(issuerID)
 	if err != nil {
@@ -292,32 +300,26 @@ func (bs *bookingService) CancelBooking(restClient clients.RestClient, issuerID 
 		}
 	}
 
-	if err != nil {
+	if userBySession.Role != datastruct.ADMIN && userBySession.ID != bookingData.CustomerID {
 		return nil, &utils.HttpError{
 			Message:    "unauthorized",
 			StatusCode: http.StatusUnauthorized,
 		}
 	}
 
-	if userBySession.Role != datastruct.ADMIN {
-		return nil, &utils.HttpError{
-			Message:    "unauthorized",
-			StatusCode: http.StatusUnauthorized,
-		}
-	}
 	canceledBooking, err := bs.dao.NewBookingQuery().CancelBooking(bookingID)
-	if err != nil{
+	if err != nil {
 		fmt.Println("Error setelah query booking")
 		tx.Rollback()
 		return nil, &utils.HttpError{
-			Message:  err.Error(),
+			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		}
 	}
 
 	booking := datastruct.CancelBookingRequest{
-		BookingID:  bookingID,
-		SeatID: canceledBooking.SeatID,
+		BookingID: bookingID,
+		SeatID:    canceledBooking.SeatID,
 	}
 	requestBody, err := json.Marshal(booking)
 	if err != nil {
@@ -327,7 +329,7 @@ func (bs *bookingService) CancelBooking(restClient clients.RestClient, issuerID 
 		}
 	}
 	externalAPIPath := "/book/cancel"
-	response, err := restClient.Post(externalAPIPath,requestBody)
+	response, err := restClient.Post(externalAPIPath, requestBody)
 	if err != nil {
 		return nil, &utils.HttpError{
 			Message:    err.Error(),
@@ -373,7 +375,7 @@ func (bs *bookingService) CancelBooking(restClient clients.RestClient, issuerID 
 	tx.Commit()
 	responseData := datastruct.CancelBookingResponse{
 		BookingID: bookingID,
-		Message: "Succesfully cancelled booking",
+		Message:   "Succesfully cancelled booking",
 	}
 	return &responseData, nil
 }
